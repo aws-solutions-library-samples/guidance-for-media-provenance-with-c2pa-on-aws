@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+mangum
+c2pa-python
