@@ -8,7 +8,7 @@ type GeneratedQuery<InputType, OutputType> = string & {
   __generatedQueryOutput: OutputType;
 };
 
-export const readFile = /* GraphQL */ `query ReadFile($input: ReadFile!) {
-  readFile(input: $input)
+export const readFile = /* GraphQL */ `query ReadFile {
+  readFile
 }
 ` as GeneratedQuery<APITypes.ReadFileQueryVariables, APITypes.ReadFileQuery>;

@@ -10,10 +10,6 @@ export type CreateManifest = {
   ingredientsUpload?: Array< string | null > | null,
 };
 
-export type ReadFile = {
-  assetS3?: string | null,
-};
-
 export type CreateManifestMutationVariables = {
   input: CreateManifest,
 };
@@ -23,7 +19,6 @@ export type CreateManifestMutation = {
 };
 
 export type ReadFileQueryVariables = {
-  input: ReadFile,
 };
 
 export type ReadFileQuery = {

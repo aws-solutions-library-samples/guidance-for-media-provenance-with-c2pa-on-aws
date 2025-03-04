@@ -35,9 +35,6 @@ export const HeaderNavigation = ({ signOut, user }: IAuthenticator) => {
     <TopNavigation
       identity={{
         href: "/",
-        logo: {
-          src: "https://d0.awsstatic.com/logos/powered-by-aws-white.png",
-        },
         title:
           "Coalition for Content Provenance and Authenticity (C2PA) Guidance",
       }}
