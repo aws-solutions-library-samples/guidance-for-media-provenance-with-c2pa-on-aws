@@ -120,7 +120,7 @@ Have a look at the `package.json` under the scripts section these would be high 
 
 - If you encounter a token error during deployment, it likely indicates that your terminal session is not properly authenticated with your AWS account. To resolve this, verify your AWS credentials, renew your AWS session if expired, ensure you are targeting the correct AWS region, and check that your IAM user or role has the necessary permissions for deployment operations.
 
-- If you continue to face deployment issues, you can consider destroying the existing CloudFormation stack and redeploying the application from scratch. This approach ensures a clean slate, eliminating potential conflicts or inconsistencies caused by the previous deployment. However, be cautious as destroying the stack will remove all associated resources, including any data stored in those resources, so it's crucial to back up important data beforehand.
+- If you encounter issues during deployment, try deleting the `cdk.out` folder and redeploy the application. The `cdk.out` folder is where the AWS Cloud Development Kit (CDK) synthesizes and outputs the AWS CloudFormation templates, which are subsequently deployed to your AWS account. By deleting this folder, you force the CDK to regenerate the CloudFormation templates, potentially resolving any underlying issues caused by outdated or corrupted templates in the `cdk.out` folder.
 
 ## Security
 
