@@ -1,10 +1,10 @@
 {
   "dependencies": {
-    "@middy/core": "^5.5.0",
-    "@smithy/protocol-http": "^4.1.4",
-    "@smithy/signature-v4": "^4.2.0"
+    "@middy/core": "^6.1.5",
+    "@smithy/protocol-http": "^5.0.1",
+    "@smithy/signature-v4": "^5.0.1"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.145"
+    "@types/aws-lambda": "^8.10.147"
   }
 }
