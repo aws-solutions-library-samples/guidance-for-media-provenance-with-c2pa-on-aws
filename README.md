@@ -104,7 +104,7 @@ pnpm dev
 
 This sample code is deployed using a CloudFormation template, which makes the cleanup process straightforward. To delete the CloudFormation stack and remove all assets created when the resources were deployed into your account, you can execute the following command from the root folder of the CDK project:
 
-```bash
+```sh
 pnpm cdk destroy
 ```
 
