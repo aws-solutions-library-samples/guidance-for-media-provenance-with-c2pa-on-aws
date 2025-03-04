@@ -1,4 +1,6 @@
-# Content Provenance Tracking Guidance
+# Running C2PA Workloads on AWS Fargate and AWS Lambda
+
+## Coalition for Content Provenance and Authenticity (C2PA)
 
 Tracking content provenance has always been a challenge for media companies. With the advent of generative artificial intelligence (Gen AI), it has become increasingly important for providers and creators in the media and entertainment space to record the provenance of assets throughout the content production and distribution process. These records are critical for three reasons:
 
@@ -32,7 +34,7 @@ To successfully connect the AWS CLI to your AWS account, you'll need to configur
 
 ## 1. Install the required packages
 
-```bash
+```sh
 pnpm install
 ```
 
@@ -44,7 +46,7 @@ Navigate to [packages/infra/lib/NestedStacks/C2pa/SecretsManager/README.md](pack
 
 Bootstrapping is the process of preparing an environment for deployment. Bootstrapping is a one-time action that you must perform for every environment that you deploy resources into.
 
-```bash
+```sh
 pnpm cdk bootstrap
 ```
 
@@ -52,11 +54,11 @@ pnpm cdk bootstrap
 
 Deploy the guidance using:
 
-```bash
+```sh
 pnpm cdk deploy
 ```
 
-The cdk outputs cloudformation templates to the cdk.out folder. By running the following command you will be able to access these templates at C2PaStack.template.json
+The cdk outputs cloudformation templates to the `cdk.out` folder. By running the following command you will be able to access these templates at `C2PaStack.template.json`
 
 The project will synthesize and then deploy
 
@@ -112,10 +114,18 @@ This command will initiate the process of deleting the CloudFormation stack and 
 
 Have a look at the `package.json` under the scripts section these would be high level commands you can run to operate this repository.
 
+## Troubleshooting
+
+- If you encounter issues during deployment, try deleting the cdk.out folder and redeploy the application. The cdk.out folder is where the AWS Cloud Development Kit (CDK) synthesizes and outputs the AWS CloudFormation templates, which are subsequently deployed to your AWS account. By deleting this folder, you force the CDK to regenerate the CloudFormation templates, potentially resolving any underlying issues caused by outdated or corrupted templates in the cdk.out folder.
+
+- If you encounter a token error during deployment, it likely indicates that your terminal session is not properly authenticated with your AWS account. To resolve this, verify your AWS credentials, renew your AWS session if expired, ensure you are targeting the correct AWS region, and check that your IAM user or role has the necessary permissions for deployment operations.
+
+- If you continue to face deployment issues, you can consider destroying the existing CloudFormation stack and redeploying the application from scratch. This approach ensures a clean slate, eliminating potential conflicts or inconsistencies caused by the previous deployment. However, be cautious as destroying the stack will remove all associated resources, including any data stored in those resources, so it's crucial to back up important data beforehand.
+
 ## Security
 
 See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 
-This project is licensed under the Apache-2.0 License.
+This library is licensed under the MIT-0 License. See the LICENSE file.
