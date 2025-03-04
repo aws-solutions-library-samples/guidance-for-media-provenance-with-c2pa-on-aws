@@ -1,0 +1,15 @@
+input CreateManifest {
+  computeType: String
+  newTitle: String
+  imageS3: String
+  jsonS3: String
+  ingredientsUpload: [String]
+}
+
+type Mutation {
+  createManifest(input: CreateManifest!): AWSJSON
+}
+
+type Query {
+  readFile: AWSJSON
+}

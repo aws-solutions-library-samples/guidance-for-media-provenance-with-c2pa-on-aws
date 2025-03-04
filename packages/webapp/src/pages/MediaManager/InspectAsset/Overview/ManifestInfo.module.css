@@ -1,0 +1,25 @@
+.manifestInfoTable tbody tr:hover {
+  background-color: #f2f8fd !important;
+  cursor: pointer !important;
+}
+
+.manifestinfobadge {
+  cursor: pointer !important;
+}
+
+.manifestInfoTable tbody tr:hover td {
+  border-top: 2px solid #0972d3 !important;
+  border-bottom: 2px solid #0972d3 !important;
+}
+
+.manifestInfoTable tbody tr:hover td:first-child {
+  border-left: 2px solid #0972d3 !important;
+  border-start-start-radius: 8px;
+  border-end-start-radius: 8px;
+}
+
+.manifestInfoTable tbody tr:hover td:last-child {
+  border-right: 2px solid #0972d3 !important;
+  border-start-end-radius: 8px;
+  border-end-end-radius: 8px;
+}

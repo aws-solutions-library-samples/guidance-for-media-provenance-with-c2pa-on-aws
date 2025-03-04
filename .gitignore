@@ -9,8 +9,11 @@ cdk.out
 .DS_Store
 
 *.pem
-*.key
+*.pub
 
 cdk.context.json
 
 __pycache__
+
+!eslint.config.js
+!vite-env.d.ts

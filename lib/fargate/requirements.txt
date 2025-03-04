@@ -1,4 +1,0 @@
-boto3
-fastapi
-uvicorn
-c2pa-python
