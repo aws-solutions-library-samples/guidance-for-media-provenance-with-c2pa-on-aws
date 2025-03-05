@@ -1,0 +1,24 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - npm i -g pnpm && pnpm i
+      - npx @aws-amplify/cli codegen
+
+  build:
+    commands:
+      - echo "VITE_REGION=$REGION" > .env
+      - echo "VITE_APPSYNCAPI=$APPSYNC_API" >> .env
+      - echo "VITE_USERPOOLID=$USER_POOL_ID" >> .env
+      - echo "VITE_IDENTITYPOOLID=$IDENTITY_POOL_ID" >> .env
+      - echo "VITE_USERPOOLCLIENTID=$USER_POOL_CLIENT_ID" >> .env
+      - echo "VITE_FRONTENDSTORAGEBUCKET=$STORAGE_BUCKET" >> .env
+      - pnpm build
+
+  post_build:
+    commands:
+      - (cd dist && zip -r ../dist.zip .)
+      - export BUILD_TIME=$(date +%Y-%m-%dT%H:%M:%S)
+      - aws s3 cp ./dist.zip $BUILD_BUCKET/$BUILD_TIME.zip
+      - aws amplify start-deployment --app-id $APP_ID --branch-name $BRANCH_NAME --source-url $BUILD_BUCKET/$BUILD_TIME.zip

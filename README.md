@@ -12,25 +12,7 @@ The Coalition for Content Provenance and Authenticity (C2PA) has developed a new
 
 This project showcases how to run C2PA workloads on AWS. Two architectural options are available for this purpose. Both options utilize an open-source C2PA command-line tool developed by the Content Authority Initiative (CAI). The tool accepts a digital asset along with input arguments to produce a C2PA sidecar file. Both architectures wrap the command-line tool within a Docker container and expose its functionality via REST APIs.
 
-## AWS Fargate Option
-
-![fargate](./public/fargate-arch.png)
-
-The diagram above shows the C2PA workload option of hosting on Amazon’s container-based service AWS Fargate. This service allows users to run serverless compute for containers. The container itself is Python-based and operates a web-like server on the FastAPI framework.
-
-Tucked behind an internal-facing Application Load Balancer (ALB), the container is only accessible to callers from within the Amazon Virtual Private Cloud (VPC) in which it was launched, or any VPC with a peering connection. When processing C2PA requests, the container has access to a digital certificate and private key stored in AWS Secrets Manager.
-
-> If the Application Load Balancer is set to be public-facing, it is strongly recommended that appropriate API protections be applied to the API. By default, the ALB is internal-facing, and the FastAPI does not have configured authentication or TLS. Please refer to [this documentation](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/listener-authenticate-users.html) to get started on configuring authentication for the Application Load Balancer.
-
-## AWS Lambda Option
-
-![lambda](./public/lambda-arch.png)
-
-The diagram above shows the architecture based on AWS Lambda. This approach leverages AWS Lambda’s ability to run Docker containers. The launched container is Python-based and operates a web-like server on the FastAPI framework.
-
-AWS Lambda is capable of exposing itself as an API without the need for additional AWS services via AWS Lambda Function URLs. The endpoint is protected by AWS Identity and Access Management (IAM) authorization, which is typically inherited by the caller’s AWS IAM Role Permissions. AWS Secrets Manager is used to provide the AWS Lambda function with the necessary certificate and private key to process the request.
-
-> After deploying the project, in order to successfully invoke the AWS Lambda Function via Function URLs, the caller must have the necessary permissions to invoke the Function URL. The role of the user should have the `lambda:InvokeFunctionUrl` action granted to allow the user to invoke the function. To learn more, please check out [this documentation](https://docs.aws.amazon.com/lambda/latest/dg/urls-auth.html).
+![Architecture diagram](./arch.png)
 
 ## 0. Pre-requisites
 
@@ -38,10 +20,11 @@ The AWS Cloud Development Kit (CDK) is an open-source software development frame
 
 This project leverages the CDK to seamlessly deploy the infrastructure to your AWS account. To utilize the CDK, you need to have the following installed:
 
-- [Node.js](https://nodejs.org/en) and npm v20+.
-- [Docker](https://www.docker.com/products/docker-desktop/)
-- [AWS CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html#getting_started_install)
-- [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- [Node.js](https://nodejs.org/)
+- [Docker](https://www.docker.com/)
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [AWS CDK CLI](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
+- [pnpm](https://pnpm.io/installation)
 
 To successfully connect the AWS CLI to your AWS account, you'll need to configure your terminal session using one of the following methods:
 
@@ -52,27 +35,27 @@ To successfully connect the AWS CLI to your AWS account, you'll need to configur
 ## 1. Install the required packages
 
 ```sh
-npm install
+pnpm install
 ```
 
 ## 2. Import Certificate & Private Key
 
-Navigate to `lib/public_creds/README.md` and follow the instructions.
+Navigate to [packages/infra/lib/NestedStacks/C2pa/SecretsManager/README.md](packages/infra/lib/NestedStacks/C2pa/SecretsManager/README.md) and follow the instructions.
 
 ## 3. Bootstrap your AWS Account
 
 Bootstrapping is the process of preparing an environment for deployment. Bootstrapping is a one-time action that you must perform for every environment that you deploy resources into.
 
 ```sh
-cdk bootstrap
+pnpm cdk bootstrap
 ```
 
 ## 4. Deployment
 
-Deploy the prototype using:
+Deploy the guidance using:
 
 ```sh
-cdk deploy
+pnpm cdk deploy
 ```
 
 The cdk outputs cloudformation templates to the `cdk.out` folder. By running the following command you will be able to access these templates at `C2PaStack.template.json`
@@ -81,124 +64,55 @@ The project will synthesize and then deploy
 
 > Deploying this project will provision resources in your account, which may incur charges.
 
-## 4.1 Clean Up
+## 5. User Login
+
+After deploying the guidance, you'll need to create a new user in the Cognito user pool. This pool is typically named "C2paStack" and can be found in the AWS Console.
+
+The user you create here will serve as your login profile for the web application. You'll use an email address and password to set up this account, which you'll then use to access the application.
+
+## 5.1. Locally Test WebApp (Optional)
+
+Congratulations on reaching this stage! You've successfully deployed the guidance and can now log into the deployed web application. To find the link, navigate to the Amplify service in your AWS Console. This next step will guide you through locally testing the webapp while connecting to the deployed resources.
+
+First, create a new .env file in the packages/webapp directory. In this file, you'll need to add the variable outputs from your CDK deployment. Specifically, include all variables that start with "VITE".
+
+There are two ways to retrieve these variables:
+
+1. Check the CLI output after deployment. Look for blue text at the very end - these are the output variables.
+2. Navigate to the CloudFormation console, select your stack, and click on the "Outputs" tab.
+
+Once you've copied the variables to your .env file, add an underscore after "VITE" for each variable. Your .env file should look similar to this:
+
+```
+VITE_APPSYNCAPI = xxxxxxxxx
+VITE_FRONTENDSTORAGEBUCKET = xxxxxxxxx
+VITE_IDENTITYPOOLID = xxxxxxxxx
+VITE_REGION = xxxxxxxxx
+VITE_USERPOOLCLIENTID = xxxxxxxxx
+VITE_USERPOOLID = xxxxxxxxx
+```
+
+Replace the X's with your actual resource values. This setup will allow you to test the webapp locally while connecting to your deployed AWS resources.
+
+Once you've configured your application locally, you can run a localhost copy of your web application. To do this, run the following:
+
+```
+pnpm dev
+```
+
+## 6. Clean Up
 
 This sample code is deployed using a CloudFormation template, which makes the cleanup process straightforward. To delete the CloudFormation stack and remove all assets created when the resources were deployed into your account, you can execute the following command from the root folder of the CDK project:
 
 ```sh
-cdk destroy
+pnpm cdk destroy
 ```
 
 This command will initiate the process of deleting the CloudFormation stack and its associated resources, effectively cleaning up your account.
 
-## 5. Endpoint parameters
+## Commands
 
-> For testing the endpoint, we recommend provisioning an AWS Cloud9 instance. AWS Cloud9 is a cloud-based integrated development environment (IDE) that allows you to write, run, and debug your code directly from a web browser. During the provisioning process, you'll have the option to select the Virtual Private Cloud (VPC) where the Application Load Balancer (ALB) was deployed as part of this project's deployment. This setup will grant your AWS Cloud9 instance the ability to successfully invoke the internal-facing ALB.
-
-This project has 2 endpoints:
-
-- ALB + Fargate
-  - Internal Load Balancer
-- Lambda Function URL
-  - IAM AUTH
-
-Both endpoint have configured 3 API routes:
-
-> The 'x' placeholders shown below represent dynamic variables that you will need to replace with the appropriate values. For instance, when you provision your Application Load Balancer (ALB), it will be assigned a unique name, and you should substitute the 'x' placeholders with this specific name.
-
-1.  **/** (GET request)
-
-    - Route is used as a HEALTHCHECK to verify the endpoint works. It does not accept parameters, and is a simple GET request.
-
-      Here's an example of how to invoke each endpoint:
-
-    - #### ALB + Fargate:
-
-      ```sh
-      curl xxx-alb_endpoint-xxx/
-      ```
-
-      > Must be invoked from the VPC the ALB is launched in or a peered VPC
-
-    - #### Lambda Function URL:
-
-      > awscurl is a command-line tool that allows users to send HTTP requests to AWS API with AWS Signature Version 4 request signing. You can use pip to install awscurl. `pip install awscurl`
-
-      ```sh
-      awscurl --service lambda "xxx-function_url_endpoint-xxx/" --region xxxx
-      ```
-
-2.  **/c2pa** (POST request)
-
-    - This route processes your request and returns a pre-signed URL for downloading a .c2pa sidecar file.
-    - The body of the request accepts the following parameters:
-
-      ```js
-      presigned_asset_url: Required. The presigned URL of the photo/video asset.
-
-      assertions_json: Optional. This option allows you to paste the JSON payload for assertions directly into the curl request.
-
-      presigned_assertions_json: Optional. This option allows you to paste the presigned URL to an assertions JSON file instead of pasting the JSON payload directly in the curl request.
-
-      presigned_parent_c2pa: Optional. If you choose to incorporate a parent .c2pa file, use this parameter. This should be the presigned link of the parent .c2pa file, which will be included as an ingredient in the output sidecar.
-      ```
-
-      > A presigned URL is a temporary URL that provides secure access to an Amazon S3 bucket or object without exposing your AWS credentials. It allows you to grant time-limited permissions to upload or download specific objects from your private S3 resources, without making them publicly accessible. Presigned URLs are commonly used to securely share S3 resources with others or enable third-party applications to access your S3 resources without managing IAM credentials directly.
-
-      Here's an example of how you would invoke each endpoint
-
-    - #### ALB+Fargate:
-
-      ```sh
-      curl -d '{"presigned_asset_url":"REPLACE","assertions_json":{REPLACE}}' \
-      -H "Content-Type: application/json" \
-      xxx-alb_endpoint-xxx/c2pa
-      ```
-
-      > Must be invoked from the VPC the ALB is launched in or a peered VPC
-
-    - #### Lambda Function URL:
-
-      ```sh
-      awscurl --service lambda \
-      -X POST \
-      -d '{"presigned_asset_url":"REPLACE","assertions_json":{REPLACE}}' \
-      "xxx-function_url_endpoint-xxx/c2pa" \
-      --region xxxx
-      ```
-
-3.  **/read_c2pa** (POST request)
-
-    - This route is used to read into JSON format the contents of the .c2pa file.
-    - The parameters it accepts in the body are:
-
-      ```js
-      return_type: Required. Either 'json' or 'presigned_url'
-
-      presigned_c2pa_url: Required. The .c2pa file you wish to convert into json.
-      ```
-
-      Here's an example of how you would invoke each endpoint
-
-    - #### ALB+Fargate:
-
-      ```sh
-      curl -d '{"return_type":"REPLACE","presigned_c2pa_url":"REPLACE"}' \
-      -H "Content-Type: application/json" \
-      xxx-alb_endpoint-xxx/read_c2pa
-      ```
-
-      > Must be invoked from the VPC the ALB is launched in or a peered VPC
-
-    - #### Lambda Function URL:
-
-      ```sh
-      awscurl --service lambda \
-      -X POST \
-      -d '{"return_type":"REPLACE","presigned_c2pa_url":"REPLACE"}' \
-      "xxx-function_url_endpoint-xxx/c2pa" \
-      --region xxxx
-      ```
+Have a look at the `package.json` under the scripts section these would be high level commands you can run to operate this repository.
 
 ## Troubleshooting
 
