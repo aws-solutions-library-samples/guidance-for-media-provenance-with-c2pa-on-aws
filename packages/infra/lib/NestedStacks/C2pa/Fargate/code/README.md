@@ -52,3 +52,38 @@ Here are some example request payloads that you can send to the endpoint.
     "presigned_assertions_json": <Presigned URL>
 }
 ```
+
+### Fragmented C2PA use cases
+
+In order to invoke the Fragmented C2PA file, 
+
+curl -X POST "<YOUR_ALB_ENDPOINT>/sign_fmp4" \
+-H "Content-Type: application/json" \
+-d '{
+    "s3_bucket": "XXXXXXXXXXXXXXXX",
+    "init_file": "your-init-file.mp4",
+    "fragments_pattern": "your-fragment-pattern",
+    "manifest_file": "your-manifest.json",
+    "output_prefix": "your-prefix"
+}'
+
+
+s3_bucket: The S3 bucket name where your files are stored
+init_file: The initialization segment of the fragmented MP4
+fragments_pattern: Pattern matching the fragment files (uses glob pattern)
+manifest_file: JSON file containing C2PA manifest data
+output_prefix: Prefix for the output files that will be generated
+
+To use this command:
+
+Replace the values with your specific files:
+
+curl -X POST "xxxxxxxx-xxxxxx-xxxxx-xxxxxxxx-xxxxxxxx.us-east-1.elb.amazonaws.com/sign_fmp4" \
+-H "Content-Type: application/json" \
+-d '{
+    "s3_bucket": "c2pa-data",
+    "init_file": "xxxx_dashinit.mp4",
+    "fragments_pattern": "xxxxdash[1-2].m4s",
+    "manifest_file": "sample.json",
+    "output_prefix": "output"
+}'
