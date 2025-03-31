@@ -16,6 +16,34 @@ const client = generateClient();
 interface IUseRemoveFiles {
   filePaths: string[];
 }
+
+
+export const useSignFMP4 = () => {
+  return useMutation({
+    mutationFn: async (data: {
+      s3_bucket: string;
+      init_file: string;
+      fragments_pattern: string;
+      manifest_file: string;
+    }) => {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/sign_fmp4`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to sign FMP4 files');
+      }
+      
+      return response.json();
+    },
+  });
+};
+
+
 export const useRemoveFiles = (refetch: () => void) => {
   return useMutation({
     mutationKey: ["useRemoveFiles"],

@@ -1,26 +1,40 @@
-import {
-  Box,
-  Button,
-  ContentLayout,
-  Header,
-  SpaceBetween,
-  Table,
-} from "@cloudscape-design/components";
-
+// packages/webapp/src/pages/MediaManager/Library/Library.tsx
+import { Box, Button, ContentLayout, Header, SpaceBetween, Table } from "@cloudscape-design/components";
 import { ListPaginateWithPathOutput } from "aws-amplify/storage";
 import { useListAssets, useRemoveFiles } from "../../../api/api";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-
 import prettyBytes from "pretty-bytes";
 
-export const Library = () => {
+interface LibraryProps {
+  type?: 'standard' | 'fmp4';
+}
+
+// Helper function to check if file is an image
+const isImageFile = (path: string): boolean => {
+  const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg'];
+  const extension = path.split('.').pop()?.toLowerCase() || '';
+  return imageExtensions.includes(extension);
+};
+
+export const Library = ({ type = 'standard' }: LibraryProps) => {
   const navigate = useNavigate();
   const [selectedItems, setSelectedItems] = useState<
     ListPaginateWithPathOutput["items"]
   >([]);
-
+  
   const { data, isLoading, refetch, isRefetching } = useListAssets();
+
+  // Filter files based on type
+  const filteredItems = data?.items.filter(item => {
+    if (type === 'fmp4') {
+      // Show only FMP4-related files
+      return item.path.endsWith('init.mp4') || item.path.endsWith('.m4s') || item.path.endsWith('.json');
+    }
+    // For standard library, show only images
+    return isImageFile(item.path);
+  });
+
   const { mutate, isPending } = useRemoveFiles(() => {
     setSelectedItems([]);
     refetch();
@@ -32,7 +46,9 @@ export const Library = () => {
         header={
           <Header
             variant="h3"
-            description={"Library of all assets uploaded"}
+            description={type === 'fmp4' ? 
+              "Library of fragmented MP4 files" : 
+              "Library of image assets"}
             actions={
               <SpaceBetween size="s" direction="horizontal">
                 <Button
@@ -64,13 +80,40 @@ export const Library = () => {
                   loading={isRefetching}
                   onClick={() => refetch()}
                 />
+
+<Button
+  variant="primary"
+  onClick={() => navigate(type === 'fmp4' ? 
+    "/media-manager/upload-asset-fmp4" : 
+    "/media-manager/upload-asset")}
+>
+  {type === 'fmp4' ? 'MP4' : 'Image'}
+</Button>
+
               </SpaceBetween>
             }
           >
-            Library
+            {type === 'fmp4' ? 'FMP4 Library' : 'Image Library'}
           </Header>
         }
         columnDefinitions={[
+          {
+            id: "preview",
+            header: "Preview",
+            cell: (item) => (
+              type !== 'fmp4' && isImageFile(item.path) ? (
+                <img 
+                  src={`/${item.path}`} 
+                  alt={item.path.split("/").pop()} 
+                  style={{ 
+                    maxWidth: '50px', 
+                    maxHeight: '50px', 
+                    objectFit: 'contain' 
+                  }} 
+                />
+              ) : null
+            ),
+          },
           {
             id: "name",
             header: "Name",
@@ -87,7 +130,7 @@ export const Library = () => {
           {
             id: "type",
             header: "Type",
-            cell: (item) => item.path.split(".").pop(),
+            cell: (item) => item.path.split(".").pop()?.toUpperCase(),
           },
           {
             id: "size",
@@ -97,28 +140,32 @@ export const Library = () => {
           {
             id: "lastModified",
             header: "Last Modified",
-            cell: (item) => (item.lastModified ?? "N/A").toString(),
+            cell: (item) => new Date(item.lastModified ?? "").toLocaleString(),
           },
         ]}
         empty={
           <Box margin={{ vertical: "xs" }}>
             <SpaceBetween size="m">
-              <b>No media assets</b>
-              <Button onClick={() => navigate("/media-manager/upload-asset")}>
-                Upload Media
+              <b>{type === 'fmp4' ? 'No FMP4 files' : 'No image files'}</b>
+              <Button onClick={() => navigate(type === 'fmp4' ? 
+                "/media-manager/upload-asset-fmp4" : 
+                "/media-manager/upload-asset")}
+              >
+                Upload {type === 'fmp4' ? 'FMP4' : 'Image'}
               </Button>
             </SpaceBetween>
           </Box>
         }
         loading={isLoading}
         selectionType="multi"
-        items={data?.items ?? []}
+        items={filteredItems ?? []}
         loadingText="Loading assets"
         selectedItems={selectedItems}
         isItemDisabled={() => isPending}
         onSelectionChange={({ detail }) =>
           setSelectedItems(detail.selectedItems)
         }
+        variant="container"
       />
     </ContentLayout>
   );

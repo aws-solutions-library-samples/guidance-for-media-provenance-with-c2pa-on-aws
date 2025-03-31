@@ -60,6 +60,37 @@ const navItems: SideNavigationProps.Item[] = [
   },
   {
     type: "section",
+    text: "Fragmented MP4 Video Manager",
+    items: [
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: <NavigationLink path={"/fmp4-manager"} title={"Library"} />,
+      },
+
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/media-manager/upload-asset-fmp4"}
+            title={"Upload FMP4 Asset"}
+          />
+        ),
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: <NavigationLink path={"/media-manager/sign-fmp4"} 
+        title={"Sign FMP4"} />,
+      },
+    ],
+  },
+  {
+    type: "section",
     text: "Simulations",
     items: [
       {

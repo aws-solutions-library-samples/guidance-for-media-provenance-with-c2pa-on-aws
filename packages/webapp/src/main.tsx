@@ -15,9 +15,11 @@ import { Article1 } from "./pages/Simulations/Article1/Article1.tsx";
 import { Dashboard } from "./pages/Overview/Dashboard/Dashboard.tsx";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { FMP4Manager} from "./pages/MediaManager/FMP4Manager/FMP4Manager.tsx";
 import { EditAsset } from "./pages/MediaManager/EditAsset/EditAsset.tsx";
 import { GetStarted } from "./pages/Simulations/GetStarted/GetStarted.tsx";
 import { UploadAsset } from "./pages/MediaManager/UploadAsset/UploadAsset.tsx";
+import { UploadAssetFMP4 } from "./pages/MediaManager/UploadAsset/UploadAssetFMP4.tsx";
 import { InspectAsset } from "./pages/MediaManager/InspectAsset/InspectAsset.tsx";
 
 import { Amplify } from "aws-amplify";
@@ -38,11 +40,23 @@ const router = ({ signOut, user }: IAuthenticator) => {
         },
         {
           path: "/media-manager",
-          element: <Library />,
+          element: <Library type="standard" />,
+        },
+        {
+          path: "/fmp4-manager",
+          element: <Library type="fmp4"/>,
         },
         {
           path: "/media-manager/upload-asset",
           element: <UploadAsset />,
+        },
+        {
+          path: "/media-manager/upload-asset-fmp4",  
+          element: <UploadAssetFMP4 />,
+        },
+        {
+          path: "/media-manager/sign-fmp4",
+          element: <FMP4Manager />,
         },
         {
           path: "/media-manager/inspect-asset",

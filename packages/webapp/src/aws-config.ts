@@ -6,6 +6,7 @@ export const awsconfig: ResourcesConfig = {
       userPoolClientId: import.meta.env.VITE_USERPOOLCLIENTID,
       identityPoolId: import.meta.env.VITE_IDENTITYPOOLID,
       userPoolId: import.meta.env.VITE_USERPOOLID,
+      
     },
   },
 
