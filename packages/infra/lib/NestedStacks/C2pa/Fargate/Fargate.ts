@@ -38,25 +38,7 @@ export class Fargate extends Construct {
     super(scope, id);
 
     const stack = cdk.Stack.of(this);
-// Add this near the top of your constructor after super(scope, id)
-const taskRole = new iam.Role(this, 'C2PAFargateTaskRole', {
-  assumedBy: new iam.ServicePrincipal('ecs-tasks.amazonaws.com'),
-});
 
-// Add S3 permissions
-taskRole.addToPolicy(new iam.PolicyStatement({
-  effect: iam.Effect.ALLOW,
-  actions: [
-    's3:GetObject',
-    's3:HeadObject',
-    's3:ListBucket',
-    's3:PutObject'
-  ],
-  resources: [
-    'arn:aws:s3:::c2pa-data',
-    'arn:aws:s3:::c2pa-data/*'
-  ]
-}));
     const cluster = new ecs.Cluster(this, "Cluster", {
       clusterName: stack.stackName,
       containerInsights: true,
@@ -80,7 +62,6 @@ taskRole.addToPolicy(new iam.PolicyStatement({
             certificate: certificate.secretName,
             private_key: private_key.secretName,
           },
-          taskRole: taskRole
         },
         publicLoadBalancer: false,
       }
@@ -103,17 +84,7 @@ taskRole.addToPolicy(new iam.PolicyStatement({
     fastApi.taskDefinition.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     this.alb = fastApi.loadBalancer;
     this.alb.logAccessLogs(serverAccessLogsBucket);
-    NagSuppressions.addResourceSuppressions(
-      taskRole,
-      [
-        {
-          id: "AwsSolutions-IAM5",
-          reason: "Bucket requires wildcard to allow container interact with all objects in c2pa-data bucket",
-        }
-      ],
-      true
-    );
-    
+
     NagSuppressions.addResourceSuppressions(
       fastApi,
       [
@@ -137,4 +108,3 @@ taskRole.addToPolicy(new iam.PolicyStatement({
     );
   }
 }
-
