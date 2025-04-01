@@ -28,7 +28,7 @@ export const FMP4Manager = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   
-  const { control, handleSubmit, watch } = useForm<FMP4FormData>({
+  const { control, handleSubmit } = useForm<FMP4FormData>({
     defaultValues: {
       initFile: '',
       manifestFile: '',
@@ -180,10 +180,13 @@ export const FMP4Manager = () => {
             </FormField>
 
             <Button
-              variant="primary"
-              onClick={handleSubmit(onSubmit)}
-              loading={signFMP4.isPending}
-            >
+  variant="primary"
+  onClick={(event) => {
+    event.preventDefault();
+    handleSubmit(onSubmit)();
+  }}
+  loading={signFMP4.isPending}
+>
               Sign Files
             </Button>
           </SpaceBetween>

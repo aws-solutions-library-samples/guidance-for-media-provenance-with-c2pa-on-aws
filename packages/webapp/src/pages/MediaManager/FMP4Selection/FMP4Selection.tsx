@@ -1,6 +1,6 @@
 // packages/webapp/src/pages/MediaManager/FMP4Selection/FMP4Selection.tsx
 
-import { Container, Multiselect } from "@cloudscape-design/components";
+import { Container, Multiselect, MultiselectProps } from "@cloudscape-design/components";
 import { useListAssets } from "../../../api/api";
 import { useEffect, useState } from "react";
 
@@ -11,7 +11,7 @@ interface FMP4SelectionProps {
 
 export const FMP4Selection = ({ onChange, values = [] }: FMP4SelectionProps) => {
   const { data, isLoading } = useListAssets();
-  const [selectedOptions, setSelectedOptions] = useState<{ label: string; value: string }[]>([]);
+  const [selectedOptions, setSelectedOptions] = useState<MultiselectProps.Option[]>([]);
 
   // Filter for only M4S files (excluding init files)
   const m4sFiles = data?.items.filter(item => 
@@ -29,11 +29,16 @@ export const FMP4Selection = ({ onChange, values = [] }: FMP4SelectionProps) => 
     if (values.length > 0) {
       const newSelectedOptions = values.map(value => {
         const option = options.find(opt => opt.value === value);
-        return option || { label: value.split("/").pop() || '', value };
+        return option || { 
+          label: value.split("/").pop() || '', 
+          value: value 
+        };
       });
       setSelectedOptions(newSelectedOptions);
+    } else {
+      setSelectedOptions([]);
     }
-  }, [values, options]);
+  }, [values, data]);
 
   return (
     <Container>
@@ -41,8 +46,10 @@ export const FMP4Selection = ({ onChange, values = [] }: FMP4SelectionProps) => 
         statusType={isLoading ? "loading" : "finished"}
         selectedOptions={selectedOptions}
         onChange={({ detail }) => {
-          setSelectedOptions(detail.selectedOptions);
-          onChange(detail.selectedOptions.map(opt => opt.value));
+          setSelectedOptions([...detail.selectedOptions]);
+          onChange(detail.selectedOptions
+            .map(opt => opt.value)
+            .filter((value): value is string => value !== undefined));
         }}
         options={options}
         filteringType="auto"
