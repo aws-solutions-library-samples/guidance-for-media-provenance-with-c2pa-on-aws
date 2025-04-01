@@ -87,7 +87,7 @@ export const Library = ({ type = 'standard' }: LibraryProps) => {
     "/media-manager/upload-asset-fmp4" : 
     "/media-manager/upload-asset")}
 >
-  {type === 'fmp4' ? 'MP4' : 'Image'}
+  {type === 'fmp4' ? 'Upload MP4' : 'Upload Image'}
 </Button>
 
               </SpaceBetween>
