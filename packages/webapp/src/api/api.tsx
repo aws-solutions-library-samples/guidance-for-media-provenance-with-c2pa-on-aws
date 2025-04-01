@@ -30,13 +30,37 @@ export const useRemoveFiles = (refetch: () => void) => {
   });
 };
 
+export const useListAssets2 = () => {
+  return useQuery({
+    queryKey: ["useListAssets"],
+    queryFn: async () => {
+      const ll =  await list({
+        path: "assets/",
+      });
+      console.log("Listed assets: " + JSON.stringify(ll));
+      return ll;
+    },
+  });
+};
+
 export const useListAssets = () => {
   return useQuery({
     queryKey: ["useListAssets"],
     queryFn: async () => {
-      return await list({
+      const result = await list({
         path: "assets/",
       });
+      console.log("Listed assets: " + JSON.stringify(result));
+      const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".mpd"];
+      const ll = result.items.filter(asset => {
+        const extension = asset.path.toLowerCase().split('.').pop();
+        if(allowedExtensions.includes('.' + extension)) {
+          console.log("Allowed asset: " + asset.path);
+          return asset;
+        }
+      });
+      console.log("Listed assets: " + JSON.stringify(ll));
+      return {'items': ll};
     },
   });
 };

@@ -1,0 +1,218 @@
+:root {
+    --c2pa-passed: rgb(42, 122, 243);
+    --c2pa-failed: #d31510;
+    --c2pa-unknown: rgb(172, 172, 172);
+    --background: rgba(0, 0, 0, 0.7);
+  }
+  
+  /***TIMELINE CSS***/
+  /* Default colors for the videojs timeline and tooltip */
+  .video-js .vjs-control-bar {
+    background-color: var(--background);
+  }
+  .video-js .vjs-progress-control {
+    color: var(--c2pa-unknown);
+  }
+  .video-js .vjs-progress-holder .vjs-play-progress {
+    background-color: var(--c2pa-unknown);
+  }
+  .vjs-icon-chapters:before, .video-js .vjs-chapters-button .vjs-icon-placeholder:before {
+    content: ''
+}
+
+.vjs-live .vjs-time-control, .vjs-live .vjs-time-divider, .video-js .vjs-current-time, .video-js .vjs-duration {
+    display: block;
+}
+.vjs-subs-caps-button {
+display:block !important;
+}
+
+.video-js .vjs-play-progress::before{
+font-size: 1.5em;
+line-height: 0.5em;
+z-index: 100;
+}
+
+ 
+.video-js .vjs-play-progress:after{
+    font-size: 1.5em;
+    line-height: 0.5em;
+    z-index: 1;
+}
+
+.video-js .vjs-slider {
+    height: 0.7em;
+}
+
+.video-js .vjs-volume-level {
+   height: 0.7em;
+}
+
+.video-js .vjs-volume-level::before {
+    font-size: 1.5em;
+    z-index: 3;
+}
+
+.c2pa-menu-button .vjs-chapters-button[aria-expanded="false"] .vjs-icon-placeholder{
+    width: 36px;
+    height: 22px;
+    background: url('./assets/icons/cr-icon.svg') center center no-repeat;
+}
+
+.c2pa-menu-button .vjs-chapters-button[aria-expanded="true"]  .vjs-icon-placeholder{
+    width: 36px;
+    height: 22px;
+    background: url('./assets/icons/cr-icon-whitebg.svg') center center no-repeat;
+}
+
+.c2pa-menu-button .c2pa-menu-button-invalid[aria-expanded="false"] .vjs-icon-placeholder{
+    width: 36px;
+    height: 22px;
+    background: url('./assets/icons/cr-invalid.svg') center center no-repeat;
+}
+
+.c2pa-menu-button .c2pa-menu-button-invalid[aria-expanded="true"] .vjs-icon-placeholder{
+    width: 36px;
+    height: 22px;
+    background: url('./assets/icons/cr-invalid-whitebg.svg') center center no-repeat;
+}
+
+/* Style of c2pa progress bar */
+.seekbar-play-c2pa {
+    position: absolute;
+    top: 0;
+    height: 100%;
+  }
+
+/**MENU CSS***/
+  /* Style of the c2pa menu */
+  .vjs-menu-button-popup .vjs-menu {
+    left: 0em;
+  }
+  .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    max-height: none;
+    background-color: var(--background);
+    padding: 1.25rem;
+  }
+  
+  /* Style of the c2pa menu items */
+  .vjs-menu li.vjs-menu-title {
+    display: flex;
+    justify-content: left;
+    text-transform: none;
+    font-size: 1.2rem;
+    border-bottom: 0.063rem solid #ffffff;
+    padding-bottom: 0.313rem;
+    margin: 0;
+    width: 13.438rem;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 700;
+    font-size: 1.125rem;
+  }
+  .vjs-menu li.vjs-menu-item {
+    display: flex;
+    justify-content: left;
+    text-transform: none;
+    font-size: 1rem;
+    border-top: 0.063rem solid #ffffff;
+    padding-top: 0.625rem;
+    padding-bottom: 0.625rem;
+    width: 13.438rem;
+    cursor: default;
+    white-space: pre-wrap;
+    text-align: left;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-weight: 400;
+    font-size: 0.75rem;
+  }
+  
+  .vjs-menu li.vjs-menu-item:last-child {
+    border-top: none;
+  }
+  
+  .vjs-menu li.vjs-menu-item vjs-menu-item-text {
+    justify-content: center !important;
+  }
+  /* Remove hover effect on c2pa menu items */
+  .vjs-menu li.vjs-menu-item:hover,
+  .js-focus-visible .vjs-menu li.vjs-menu-item:hover {
+    background: none;
+  }
+  
+  
+  
+  .friction-overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 10px;
+    background-color: rgba(160, 157, 157, 0.157);
+    width: 40%;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: 'Verdana';
+    font-size: 1em;
+    color: #fff;
+  }
+  
+  .friction-overlay .friction-button {
+    background-color: #007bff;
+    border-radius: 5px;
+    padding: 5px;
+    float: right;
+  }
+  
+  .vjs-menu li.vjs-menu-item .itemName {
+    font-weight: 700;
+    padding-bottom: 4px;
+  }
+
+
+  
+  .vjs-menu .url {
+    color: #4b9cf5;
+  }
+  
+  .vjs-menu li.vjs-menu-item .alert-div {
+    width: 100%;
+    background-color: var(--c2pa-failed);
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    align-items: flex-start;
+  }
+  
+  .vjs-menu li.vjs-menu-item .alert-icon {
+    content: url('./assets/icons/alert.svg');
+    padding-right: 10px;
+  }
+  
+  .validation-padding {
+    padding-bottom: 0px !important;
+  }
+  
+  /* Disable hover effect on c2pa menu */
+  .vjs-workinghover .vjs-menu-button-popup:hover .vjs-menu {
+    display: none;
+  }
+  /***FRICTION OVERLAY***/
+.friction-overlay {
+    position: absolute;
+    bottom: 40px;
+    left: 10px;
+    background-color: rgba(160, 157, 157, 0.157);
+    width: 40%;
+    padding: 10px;
+    border-radius: 5px;
+
+    font-family: 'Verdana';
+    font-size: 1em;
+    color: #fff;
+}
+
+.friction-overlay .friction-button {
+    background-color: #007BFF;
+    border-radius: 5px;
+    padding: 5px;
+    float: right;
+}
