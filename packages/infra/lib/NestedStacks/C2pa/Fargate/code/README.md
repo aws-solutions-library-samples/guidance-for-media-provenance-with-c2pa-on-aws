@@ -14,7 +14,7 @@ Here are some example request payloads that you can send to the endpoint.
 
 ##### 1. Json assertions no previous manifest
 
-```
+```json
 {
     "presigned_asset_url": <Presigned URL>,
     "assertions_json": {
@@ -46,7 +46,7 @@ Here are some example request payloads that you can send to the endpoint.
 
 ##### 2. presigned Json assertions no previous manifest
 
-```
+```json
 {
     "presigned_asset_url": <Presigned URL>,
     "presigned_assertions_json": <Presigned URL>
@@ -55,35 +55,36 @@ Here are some example request payloads that you can send to the endpoint.
 
 ### Fragmented C2PA use cases
 
-In order to invoke the Fragmented C2PA file, 
+In order to invoke the Fragmented C2PA file, you may execute the following:
 
+```bash
 curl -X POST "<YOUR_ALB_ENDPOINT>/sign_fmp4" \
--H "Content-Type: application/json" \
--d '{
-    "s3_bucket": "XXXXXXXXXXXXXXXX",
-    "init_file": "your-init-file.mp4",
-    "fragments_pattern": "your-fragment-pattern",
-    "manifest_file": "your-manifest.json",
-    "output_prefix": "your-prefix"
-}'
+    -H "Content-Type: application/json" \
+    -d '{
+        "s3_bucket": "XXXXXXXXXXXXXXXX",
+        "init_file": "your-init-file.mp4",
+        "fragments_pattern": "your-fragment-pattern",
+        "manifest_file": "your-manifest.json"
+    }'
+```
 
-
-s3_bucket: The S3 bucket name where your files are stored
-init_file: The initialization segment of the fragmented MP4
-fragments_pattern: Pattern matching the fragment files (uses glob pattern)
-manifest_file: JSON file containing C2PA manifest data
-output_prefix: Prefix for the output files that will be generated
+> - s3_bucket: The S3 bucket name where your files are stored
+> - init_file: The initialization segment of the fragmented MP4
+> - fragments_pattern: Pattern matching the fragment files (uses glob pattern)
+> - manifest_file: JSON file containing C2PA manifest data
 
 To use this command:
 
 Replace the values with your specific files:
 
+```bash
 curl -X POST "xxxxxxxx-xxxxxx-xxxxx-xxxxxxxx-xxxxxxxx.us-east-1.elb.amazonaws.com/sign_fmp4" \
--H "Content-Type: application/json" \
--d '{
-    "s3_bucket": "c2pa-data",
-    "init_file": "xxxx_dashinit.mp4",
-    "fragments_pattern": "xxxxdash[1-2].m4s",
-    "manifest_file": "sample.json",
-    "output_prefix": "output"
-}'
+    -H "Content-Type: application/json" \
+    -d '{
+        "s3_bucket": "c2pa-data",
+        "init_file": "xxxx_dashinit.mp4",
+        "fragments_pattern": "xxxxdash[1-2].m4s",
+        "manifest_file": "sample.json",
+        "output_prefix": "output"
+    }'
+```
