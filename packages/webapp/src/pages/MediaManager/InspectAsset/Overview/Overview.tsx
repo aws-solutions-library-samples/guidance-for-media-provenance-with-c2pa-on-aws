@@ -44,7 +44,7 @@ export const Overview = ({
 
   const { mutateAsync } = useGetAssetMutate();
   
-  const mainUrl = useGetAsset(`assets/${searchParams.get("asset")}` ?? "");
+  const mainUrl = useGetAsset(`${searchParams.get("asset")}` ?? "");
   return (
     <SpaceBetween size="s">
       <Container header={<Header variant="h3">Source</Header>}>
@@ -101,12 +101,13 @@ export const Overview = ({
             mainUrl.isLoading ? (
               <Spinner />
             ) : (
-              <DASHReact 
-                url={mainUrl.data?.url.toString()}
+              <DASHReact
+                url='https://cc-assets.netlify.app/video/fmp4-samples/boat.mpd'
+                //{mainUrl.data?.url.toString()}
                 //"https://c2pastack-866295544967-us-east-1-frontend-storage.s3.us-east-1.amazonaws.com/assets/guy_lafleur/playlist.mpd"
                 controls={true}
                 autoPlay={false}
-                className="video-js vjs-default-skin"
+                className="video-js"
               />
             )
           ) : (

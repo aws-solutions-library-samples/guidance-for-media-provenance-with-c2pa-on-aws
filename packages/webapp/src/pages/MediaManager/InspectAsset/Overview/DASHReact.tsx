@@ -1,7 +1,7 @@
 
 
 import "https://vjs.zencdn.net/8.3.0/video.js";
-import 'https://cdn.dashjs.org/latest/dash.all.min.js';
+import 'https://cdn.dashjs.org/v4.7.2/dash.all.min.js';
 import {c2pa_init} from '../../../../c2pa/plugin-dash/c2pa-dash-plugin.js';
 import {C2PAPlayer} from '../../../../c2pa/C2paPlayer/main.js'
 import {
@@ -71,7 +71,7 @@ class DASHReact extends React.Component<props, state> {
       console.log("c2pa_init", e);
       c2paJsPlayer.playbackUpdate(e.c2pa_status);
     }).then(() => {
-      player.initialize(video, url, true, NaN, true);
+      player.initialize(video, url, true);
     });
     
     
@@ -92,7 +92,7 @@ class DASHReact extends React.Component<props, state> {
     const videoId = this.props.id ? `dash-react-${this.props.id}` : 'videoPlayer';
     return (
       <video
-        style={{width : 640, height: 360}}
+        //style={{width : 640, height: 360}}
         id={videoId}
         className={this.props.className}
         controls={this.props.controls}
