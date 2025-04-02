@@ -297,13 +297,3 @@ async def read_file(readFileEvent: ReadFileEvent):
                 status_code=status.HTTP_412_PRECONDITION_FAILED,
                 detail='return_type is invalid. Must be either "json" or "presigned_url"',
             )
-
-
-@app.get("/health")  # or whatever path your ELB is configured to check
-async def health_check():
-    return {"status": "healthy"}
-
-
-@app.get("/")
-async def root():
-    return {"status": "healthy", "message": "C2PA Service is running"}
