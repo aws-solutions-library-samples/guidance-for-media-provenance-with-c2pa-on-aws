@@ -17,7 +17,7 @@ export const UploadAsset = () => {
     >
       <FileUploader
         acceptedFileTypes={["image/*", "video/*"]}
-        path="assets/"
+        path="complete/assets/"
         maxFileCount={5}
         isResumable
       />

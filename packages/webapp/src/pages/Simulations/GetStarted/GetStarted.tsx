@@ -17,7 +17,7 @@ export const GetStarted = () => {
   const [mainImage, setMainImage] = useAtom(mainImageAtom);
   const [secondaryImage, setSecondaryImage] = useAtom(secondaryImageAtom);
 
-  const listAssets = useListAssets();
+  const listAssets = useListAssets("complete/assets/");
 
   return (
     <ContentLayout

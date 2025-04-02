@@ -22,7 +22,8 @@ import prettyBytes from "pretty-bytes";
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  const { data, isLoading, isRefetching, isError, refetch } = useListAssets();
+  const { data, isLoading, isRefetching, isError, refetch } =
+    useListAssets("complete/assets/");
 
   return (
     <ContentLayout
