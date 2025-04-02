@@ -31,7 +31,7 @@ export const Step2 = ({ control, folderSelection }: IStep2) => {
         >
           <Controller
             control={control}
-            defaultValue={`${folderSelection.split("/").reverse()[1]}.mp4`}
+            defaultValue={`${folderSelection.split("/").reverse()[1]}`}
             name="newTitle"
             render={({ field: { onChange, value } }) => (
               <Input
