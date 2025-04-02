@@ -20,7 +20,8 @@ export const Library = () => {
     ListPaginateWithPathOutput["items"]
   >([]);
 
-  const { data, isLoading, refetch, isRefetching } = useListAssets();
+  const { data, isLoading, refetch, isRefetching } =
+    useListAssets("complete/assets/");
   const { mutate, isPending } = useRemoveFiles(() => {
     setSelectedItems([]);
     refetch();

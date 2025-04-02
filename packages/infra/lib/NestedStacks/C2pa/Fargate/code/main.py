@@ -1,4 +1,8 @@
-from utils import run_c2pa_command, garbage_collect_folder, unhandled_exception_handler
+from utils import (
+    run_c2pa_command_for_fmp4,
+    garbage_collect_folder,
+    unhandled_exception_handler,
+)
 from fastapi import FastAPI, HTTPException, status
 from urllib.parse import urlparse
 from pydantic import BaseModel
@@ -162,11 +166,9 @@ async def sign_file(signFileEvent: SignFileEvent):
 ############################ /sign_fmp4 ################################
 ########################################################################
 class SignFmp4Event(BaseModel):
-    s3_bucket: str
     init_file: str
-    fragments_pattern: str = "fragment*.m4s"  # Pattern to match fragments
+    fragments_pattern: str
     manifest_file: str
-    output_prefix: str = "output"
 
 
 @app.post("/sign_fmp4")
@@ -174,17 +176,22 @@ async def sign_fmp4(request: SignFmp4Event):
     with tempfile.TemporaryDirectory() as temp_dir:
         init_file_path = os.path.join(temp_dir, "init.mp4")
         logger.info(f"Downloading init file: {request.init_file}")
+        print("starting download")
 
         with open(init_file_path, "wb") as f:
-            s3.download_fileobj(request.s3_bucket, request.init_file, f)
+            init_config = urlparse(request.init_file)
+            print(init_config)
+            s3.download_fileobj(init_config.netloc, init_config.path.lstrip("/"), f)
 
         # List fragments
         logger.info("Listing fragments...")
         paginator = s3.get_paginator("list_objects_v2")
         fragments = []
+        fragments_config = urlparse(request.fragments_pattern)
 
         for page in paginator.paginate(
-            Bucket=request.s3_bucket, Prefix=request.fragments_pattern
+            Bucket=fragments_config.netloc,
+            Prefix=os.path.dirname(fragments_config.path.lstrip("/")),
         ):
             if "Contents" in page:
                 for obj in page["Contents"]:
@@ -193,7 +200,7 @@ async def sign_fmp4(request: SignFmp4Event):
                             temp_dir, os.path.basename(obj["Key"])
                         )
                         with open(fragment_path, "wb") as f:
-                            s3.download_fileobj(request.s3_bucket, obj["Key"], f)
+                            s3.download_fileobj(fragments_config.netloc, obj["Key"], f)
                         fragments.append(fragment_path)
 
         fragments.sort()  # Ensure fragments are in order
@@ -201,15 +208,20 @@ async def sign_fmp4(request: SignFmp4Event):
         # Download manifest file
         manifest_path = os.path.join(temp_dir, "manifest.json")
         with open(manifest_path, "wb") as f:
-            s3.download_fileobj(request.s3_bucket, request.manifest_file, f)
+            manifest_config = urlparse(request.manifest_file)
+            s3.download_fileobj(
+                manifest_config.netloc, manifest_config.path.lstrip("/"), f
+            )
 
         # Create output directory
         output_dir = os.path.join(temp_dir, "output")
         os.makedirs(output_dir, exist_ok=True)
 
+        print(os.listdir(temp_dir))
+
         # Run c2pa command
         output_path = os.path.join(output_dir, "signed.mp4")
-        success, output = run_c2pa_command(
+        success, output = run_c2pa_command_for_fmp4(
             init_file=init_file_path,
             fragments_glob=f"{temp_dir}/*.m4s",
             output_dir=output_dir,
@@ -221,24 +233,28 @@ async def sign_fmp4(request: SignFmp4Event):
                 status_code=500, detail=f"C2PA signing failed: {output}"
             )
 
+        print(os.listdir(temp_dir))
+        print(os.listdir(output_dir))
+
         output_key = "fmp4_output/signed.mp4"
 
         # Upload result file
-        if os.path.isfile(output_path):
-            s3.upload_file(
-                output_path,
-                output_bucket,
-                output_key,
-                ExtraArgs={"ContentType": "video/mp4"},
-            )
-        else:
-            raise FileNotFoundError(f"Output file not found: {output_path}")
+        s3.upload_file(
+            output_path,
+            output_bucket,
+            output_key,
+            ExtraArgs={"ContentType": "video/mp4"},
+        )
 
-        return {
-            "status": "success",
-            "message": "Files processed successfully",
-            "output_location": f"s3://{output_bucket}/{output_key}",
-        }
+        manifest = s3.generate_presigned_url(
+            "get_object",
+            Params={
+                "Bucket": output_bucket,
+                "Key": output_key,
+            },
+        )
+
+        return {"manifest": manifest}
 
 
 ########################################################################

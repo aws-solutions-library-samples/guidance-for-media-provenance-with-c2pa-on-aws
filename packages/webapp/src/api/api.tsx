@@ -1,49 +1,22 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { generateClient } from "aws-amplify/api";
 import {
-  copy,
   getProperties,
-  getUrl,
-  list,
-  remove,
   uploadData,
+  getUrl,
+  remove,
+  copy,
+  list,
 } from "aws-amplify/storage";
-import { createManifest } from "../graphql/mutations";
+
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SelectProps } from "@cloudscape-design/components";
+import { createFMP4Manifest, createManifest } from "../graphql/mutations";
+import { generateClient } from "aws-amplify/api";
 
 const client = generateClient();
 
 interface IUseRemoveFiles {
   filePaths: string[];
 }
-
-
-export const useSignFMP4 = () => {
-  return useMutation({
-    mutationFn: async (data: {
-      s3_bucket: string;
-      init_file: string;
-      fragments_pattern: string;
-      manifest_file: string;
-    }) => {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/sign_fmp4`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to sign FMP4 files');
-      }
-      
-      return response.json();
-    },
-  });
-};
-
-
 export const useRemoveFiles = (refetch: () => void) => {
   return useMutation({
     mutationKey: ["useRemoveFiles"],
@@ -58,12 +31,17 @@ export const useRemoveFiles = (refetch: () => void) => {
   });
 };
 
-export const useListAssets = () => {
+export const useListAssets = (path: string) => {
   return useQuery({
-    queryKey: ["useListAssets"],
+    queryKey: [`useListAssets${path}`],
     queryFn: async () => {
       return await list({
-        path: "assets/",
+        path,
+        options: {
+          subpathStrategy: {
+            strategy: "exclude",
+          },
+        },
       });
     },
   });
@@ -181,6 +159,40 @@ export const useCreateNewManifest = () => {
       });
 
       return JSON.parse(data.createManifest);
+    },
+  });
+};
+
+interface IUseCreateNewFMP4Manifest {
+  newTitle: string;
+  computeType: string;
+  initFile: string;
+  manifestFile: string;
+  fragmentsPattern: string;
+}
+export const useCreateNewFMP4Manifest = () => {
+  return useMutation({
+    mutationFn: async ({
+      newTitle,
+      computeType,
+      initFile,
+      manifestFile,
+      fragmentsPattern,
+    }: IUseCreateNewFMP4Manifest) => {
+      const { data } = await client.graphql({
+        query: createFMP4Manifest,
+        variables: {
+          input: {
+            newTitle,
+            computeType,
+            initFile,
+            manifestFile,
+            fragmentsPattern,
+          },
+        },
+      });
+
+      return JSON.parse(data.createFMP4Manifest);
     },
   });
 };

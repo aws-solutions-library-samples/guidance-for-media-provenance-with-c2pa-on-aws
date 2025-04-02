@@ -62,6 +62,7 @@ export class C2paStack extends cdk.Stack {
       private_key,
     });
     const { alb } = new Fargate(this, "C2PA Fargate", {
+      uiStorageBucket: storageStack.uiStorageBucket,
       serverAccessLogsBucket: storageStack.serverAccessLogsBucket,
       backendStorageBucket: storageStack.backendStorageBucket,
       vpc: networkStack.vpc,

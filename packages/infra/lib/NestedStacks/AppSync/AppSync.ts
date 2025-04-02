@@ -168,6 +168,14 @@ export class AppSync extends Construct {
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       code: appsync.Code.fromInline(pipelineCode),
     });
+
+    this.graphqlApi.createResolver("Create fMP4 Manifest", {
+      typeName: "Mutation",
+      fieldName: "createFMP4Manifest",
+      pipelineConfig: [appsyncFn],
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      code: appsync.Code.fromInline(pipelineCode),
+    });
   }
 }
 

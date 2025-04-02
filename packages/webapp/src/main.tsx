@@ -1,28 +1,28 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
+import React from "react";
+
+import { InspectAsset } from "./pages/MediaManager/InspectAsset/InspectAsset.tsx";
+import { UploadAsset } from "./pages/MediaManager/UploadAsset/UploadAsset.tsx";
+import { FMP4Library } from "./pages/Fmp4Manager/FMP4Library/FMP4Library.tsx";
+import { FMP4Upload } from "./pages/Fmp4Manager/FMP4Upload/FMP4Upload.tsx";
+import { GetStarted } from "./pages/Simulations/GetStarted/GetStarted.tsx";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { EditAsset } from "./pages/MediaManager/EditAsset/EditAsset.tsx";
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { FMP4Sign } from "./pages/Fmp4Manager/FMP4Sign/FMP4Sign.tsx";
+import { Dashboard } from "./pages/Overview/Dashboard/Dashboard.tsx";
+import { Article1 } from "./pages/Simulations/Article1/Article1.tsx";
+import { Library } from "./pages/MediaManager/Library/Library.tsx";
+import { IAuthenticator } from "./common/interfaces.ts";
+import { Authenticator } from "@aws-amplify/ui-react";
+import { C2paProvider } from "@contentauth/react";
+import { awsconfig } from "./aws-config.ts";
+import { Amplify } from "aws-amplify";
+import { App } from "./App.tsx";
 
 import "@cloudscape-design/global-styles/index.css";
 import "@aws-amplify/ui-react/styles.css";
 import "@xyflow/react/dist/style.css";
-
-import { App } from "./App.tsx";
-import { awsconfig } from "./aws-config.ts";
-import { C2paProvider } from "@contentauth/react";
-import { Authenticator } from "@aws-amplify/ui-react";
-import { IAuthenticator } from "./common/interfaces.ts";
-import { Library } from "./pages/MediaManager/Library/Library.tsx";
-import { Article1 } from "./pages/Simulations/Article1/Article1.tsx";
-import { Dashboard } from "./pages/Overview/Dashboard/Dashboard.tsx";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { FMP4Manager} from "./pages/MediaManager/FMP4Manager/FMP4Manager.tsx";
-import { EditAsset } from "./pages/MediaManager/EditAsset/EditAsset.tsx";
-import { GetStarted } from "./pages/Simulations/GetStarted/GetStarted.tsx";
-import { UploadAsset } from "./pages/MediaManager/UploadAsset/UploadAsset.tsx";
-import { UploadAssetFMP4 } from "./pages/MediaManager/UploadAsset/UploadAssetFMP4.tsx";
-import { InspectAsset } from "./pages/MediaManager/InspectAsset/InspectAsset.tsx";
-
-import { Amplify } from "aws-amplify";
 
 Amplify.configure(awsconfig);
 
@@ -40,23 +40,11 @@ const router = ({ signOut, user }: IAuthenticator) => {
         },
         {
           path: "/media-manager",
-          element: <Library type="standard" />,
-        },
-        {
-          path: "/fmp4-manager",
-          element: <Library type="fmp4"/>,
+          element: <Library />,
         },
         {
           path: "/media-manager/upload-asset",
           element: <UploadAsset />,
-        },
-        {
-          path: "/media-manager/upload-asset-fmp4",  
-          element: <UploadAssetFMP4 />,
-        },
-        {
-          path: "/media-manager/sign-fmp4",
-          element: <FMP4Manager />,
         },
         {
           path: "/media-manager/inspect-asset",
@@ -73,6 +61,18 @@ const router = ({ signOut, user }: IAuthenticator) => {
         {
           path: "/simulations/article-1",
           element: <Article1 />,
+        },
+        {
+          path: "/fmp4-manager",
+          element: <FMP4Library />,
+        },
+        {
+          path: "/fmp4-manager/upload-asset-fmp4",
+          element: <FMP4Upload />,
+        },
+        {
+          path: "/fmp4-manager/sign-fmp4",
+          element: <FMP4Sign />,
         },
       ],
     },

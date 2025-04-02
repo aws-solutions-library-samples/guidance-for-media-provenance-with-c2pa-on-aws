@@ -50,7 +50,7 @@ export const EditAsset = () => {
   const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   const navigate = useNavigate();
-  const listAssets = useListAssets();
+  const listAssets = useListAssets("complete/assets/");
   const getAssetMutate = useGetAssetMutate();
   const createNewManifest = useCreateNewManifest();
   const photoEditorHook = usePhotoEditor({ file });
@@ -123,7 +123,7 @@ export const EditAsset = () => {
                   <Button
                     onClick={async () => {
                       const url = await getUrl({
-                        path: `assets/${newTitle}`,
+                        path: `complete/assets/${newTitle}`,
                       });
                       window.open(url.url);
                     }}
@@ -145,7 +145,7 @@ export const EditAsset = () => {
             <StorageImage
               height={"30vh"}
               alt={newTitle}
-              path={`assets/${newTitle}`}
+              path={`complete/assets/${newTitle}`}
             />
           </Container>
         </SpaceBetween>
