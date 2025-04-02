@@ -11,10 +11,7 @@ COPY . .
 
 # Install Python and other dependencies
 RUN apt-get update
-RUN apt-get install -y curl
-RUN apt-get install -y python3
-RUN apt-get install -y python3-pip
-RUN apt-get install -y software-properties-common
+RUN apt-get install -y curl python3 python3-pip software-properties-common
 
 RUN python3 --version
 
