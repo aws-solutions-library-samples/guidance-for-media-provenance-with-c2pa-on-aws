@@ -23,6 +23,7 @@ import { App } from "./App.tsx";
 import "@cloudscape-design/global-styles/index.css";
 import "@aws-amplify/ui-react/styles.css";
 import "@xyflow/react/dist/style.css";
+import { FMP4Inspect } from "./pages/Fmp4Manager/FMP4Inspect/FMP4Inspect.tsx";
 
 Amplify.configure(awsconfig);
 
@@ -65,6 +66,10 @@ const router = ({ signOut, user }: IAuthenticator) => {
         {
           path: "/fmp4-manager",
           element: <FMP4Library />,
+        },
+        {
+          path: "/fmp4-manager/inspect-asset",
+          element: <FMP4Inspect />,
         },
         {
           path: "/fmp4-manager/upload-asset-fmp4",

@@ -71,6 +71,10 @@ export class Amplify extends Construct {
       "ttf",
       "json",
       "wasm",
+      "mp4",
+      "mdp",
+      "m4v",
+      "m4s",
     ];
 
     const amplifyApp = new amplify.App(this, stack.stackName, {

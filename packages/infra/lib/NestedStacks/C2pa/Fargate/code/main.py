@@ -166,6 +166,7 @@ async def sign_file(signFileEvent: SignFileEvent):
 ############################ /sign_fmp4 ################################
 ########################################################################
 class SignFmp4Event(BaseModel):
+    new_title: str
     init_file: str
     fragments_pattern: str
     manifest_file: str
@@ -220,7 +221,6 @@ async def sign_fmp4(request: SignFmp4Event):
         print(os.listdir(temp_dir))
 
         # Run c2pa command
-        output_path = os.path.join(output_dir, "signed.mp4")
         success, output = run_c2pa_command_for_fmp4(
             init_file=init_file_path,
             fragments_glob=f"{temp_dir}/*.m4s",
@@ -233,28 +233,27 @@ async def sign_fmp4(request: SignFmp4Event):
                 status_code=500, detail=f"C2PA signing failed: {output}"
             )
 
-        print(os.listdir(temp_dir))
         print(os.listdir(output_dir))
 
-        output_key = "fmp4_output/signed.mp4"
+        output_folder = os.path.join(output_dir, temp_dir.split("/").pop())
 
-        # Upload result file
-        s3.upload_file(
-            output_path,
-            output_bucket,
-            output_key,
-            ExtraArgs={"ContentType": "video/mp4"},
-        )
+        for root, _, files in os.walk(output_folder):
+            for file in files:
+                s3.upload_file(
+                    os.path.join(output_folder, file),
+                    output_bucket,
+                    f"fragments/processed/{request.new_title}/{file}",
+                )
 
-        manifest = s3.generate_presigned_url(
-            "get_object",
-            Params={
-                "Bucket": output_bucket,
-                "Key": output_key,
-            },
-        )
+        # manifest = s3.generate_presigned_url(
+        #     "get_object",
+        #     Params={
+        #         "Bucket": output_bucket,
+        #         "Key": output_key,
+        #     },
+        # )
 
-        return {"manifest": manifest}
+        return {"manifest": "manifest"}
 
 
 ########################################################################
