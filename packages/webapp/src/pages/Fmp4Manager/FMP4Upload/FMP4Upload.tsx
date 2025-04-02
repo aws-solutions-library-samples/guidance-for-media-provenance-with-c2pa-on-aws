@@ -45,7 +45,7 @@ export const FMP4Upload = () => {
           <FileUploader
             acceptedFileTypes={[".mp4", ".mpd", ".m4s", ".json"]}
             path={`fragments/assets/${folderName}/`}
-            maxFileCount={30}
+            maxFileCount={100}
             isResumable
           />
         )}
