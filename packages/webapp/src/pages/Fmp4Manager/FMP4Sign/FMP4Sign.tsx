@@ -9,19 +9,28 @@ import {
 } from "@cloudscape-design/components";
 
 import { useListAssets, useCreateNewFMP4Manifest } from "../../../api/api";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, SubmitHandler } from "react-hook-form";
 import { Step2 } from "./StepTwo";
+
+export type FormValues = {
+  newTitle: string;
+  computeType: "lambda" | "fargate";
+  initFile: string;
+  manifestFile: string;
+  fragmentsPattern: string;
+  folder: string;
+};
 
 export const FMP4Sign = () => {
   const { data } = useListAssets("fragments/assets/");
 
-  const { control, handleSubmit, watch } = useForm();
+  const { control, handleSubmit, watch } = useForm<FormValues>();
 
   const createNewFMP4Manifest = useCreateNewFMP4Manifest();
 
-  const folderSelection = watch("folder", null);
+  const folderSelection = watch("folder");
 
-  const onSubmit = async (data) => {
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
     await createNewFMP4Manifest.mutateAsync({
       newTitle: data.newTitle,
       computeType: data.computeType,
@@ -36,8 +45,6 @@ export const FMP4Sign = () => {
       }/${folderSelection}${data.fragmentsPattern}`,
     });
   };
-
-  console.log(createNewFMP4Manifest.data);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
