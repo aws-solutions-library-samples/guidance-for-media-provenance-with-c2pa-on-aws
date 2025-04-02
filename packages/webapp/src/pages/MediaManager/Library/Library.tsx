@@ -21,7 +21,6 @@ export const Library = () => {
   >([]);
 
   const { data, isLoading, refetch, isRefetching } = useListAssets();
-
   const { mutate, isPending } = useRemoveFiles(() => {
     setSelectedItems([]);
     refetch();
