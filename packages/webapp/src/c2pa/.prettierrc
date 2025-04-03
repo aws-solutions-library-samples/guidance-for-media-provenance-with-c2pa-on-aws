@@ -1,0 +1,12 @@
+{
+    "bracketSpacing": true,
+    "semi": true,
+    "singleQuote": true,
+    "bracketSameLine": true,
+    "tabWidth": 2,
+    "trailingComma": "all",
+    "overrides": [{ "files": "*.svelte", "options": { "parser": "svelte" } }],
+    "plugins": [
+    ],
+    "organizeImportsSkipDestructiveCodeActions": true
+  }

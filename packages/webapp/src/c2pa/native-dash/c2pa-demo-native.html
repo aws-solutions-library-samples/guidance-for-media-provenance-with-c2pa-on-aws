@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Native C2PA validation inside dash.js</title>
+
+    <!-- dash-js -->
+    <script src="../../../dist/dash.all.debug.js"></script>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../lib/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <link href="../../lib/main.css" rel="stylesheet" />
+
+    <!-- video-js -->
+    <script src="https://vjs.zencdn.net/8.3.0/video.js"></script>
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+
+    <!-- c2pa player -->
+    <link href="../c2pa-player.css" rel="stylesheet" />
+
+    <!-- jakarta font-->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap"
+      rel="stylesheet" />
+
+    <style>
+      video {
+        width: 640px;
+        height: 360px;
+      }
+    </style>
+
+    <script class="code" type="module">
+      import { C2PAPlayer } from '../C2paPlayer/main.js';
+
+      /* c2pa player instance */
+      var c2paPlayer;
+
+      function init() {
+        var video,
+          dashPlayer,
+          url =
+            'https://cc-assets.netlify.app/video/fmp4-samples/travellog.mpd';
+
+        video = document.querySelector('#videoPlayer');
+        /* Create dashjs player with c2pa verification enabled */
+        /* Responsible for streaming video and executing c2pa validation */
+        dashPlayer = dashjs.MediaPlayer().create();
+        dashPlayer.initialize(video, url, true, NaN, true);
+            
+            var options = {fluid: true , controlBar: { children: ['playToggle' , 'progressControl', "currentTimeDisplay", 'volumePanel', 'pictureInPictureToggle', 'fullscreenToggle']}}
+          
+            /* Create videojs player and c2pa player */
+            /* Responsible for UI and playback control */
+            var videoJsPlayer = videojs('videoPlayer', options );
+            c2paPlayer = new C2PAPlayer(videoJsPlayer, video);
+            c2paPlayer.initialize();
+
+        dashPlayer.on(
+          dashjs.MediaPlayer.events['PLAYBACK_TIME_UPDATED'],
+          playbackUpdate,
+        );
+      }
+
+      function playbackUpdate(e) {
+        /* Update c2pa player with current c2pa status update */
+        c2paPlayer.playbackUpdate(e.c2pa_status);
+      }
+
+      document.addEventListener('DOMContentLoaded', function () {
+        init();
+      });
+    </script>
+  </head>
+  <body>
+    <main>
+      <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+          <img class="" src="../../lib/img/dashjs-logo.png" width="200" />
+        </header>
+        <div class="row">
+          <div class="col-md-4">
+            <div class="h-100 p-5 bg-light border rounded-3">
+              <h3>C2PA Integration w/ dash.js</h3>
+              <p>
+                This sample shows how to use dash.js with C2PA verification
+                integrated into the DASH player itself, and associated UI to
+                show validation status and C2PA information.
+              </p>
+            </div>
+          </div>
+          <div class="col-md-8">
+            <video id="videoPlayer" class="video-js" controls="true"></video>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            <div id="code-output"></div>
+          </div>
+        </div>
+        <footer class="pt-3 mt-4 text-muted border-top">&copy; DASH-IF</footer>
+      </div>
+    </main>
+
+    <script src="../../highlighter.js"></script>
+  </body>
+</html>

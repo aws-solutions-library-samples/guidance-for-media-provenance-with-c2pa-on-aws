@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>C2PA Validation for Monolithic MP4</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../../lib/bootstrap/bootstrap.min.css" rel="stylesheet">
+    <link href="../../lib/main.css" rel="stylesheet">
+
+    <!-- video-js -->
+    <script src="https://vjs.zencdn.net/8.3.0/video.js"></script>
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+
+    <!-- c2pa player -->
+    <link href="../c2pa-player.css" rel="stylesheet" />
+
+     <!-- jakarta font-->
+     <link rel="preconnect" href="https://fonts.googleapis.com">
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;700&display=swap" rel="stylesheet">
+
+    <style>
+        video {
+            width: 640px;
+            height: 360px;
+        }
+    </style>
+
+    <script type="module" class="code">
+        /* Import c2pa plugin */
+        import {c2pa_init} from './c2pa-monolithic-plugin.js';
+        import {C2PAPlayer} from '../C2paPlayer/main.js'
+
+        /* c2pa player instance */
+        var c2paPlayer;
+        
+        function init() {
+            var video,
+              url = "../../microsoft/video_samples/monolithic/provenanceoutput_progressivedownload.mp4";
+
+            video = document.querySelector("#videoPlayer");
+            
+            var options = {fluid: true , controlBar: { children: ['playToggle' , 'progressControl', "currentTimeDisplay", 'volumePanel', 'pictureInPictureToggle', 'fullscreenToggle']}}
+
+            /* Create videojs player and c2pa player */
+            /* Responsible for UI and playback control */
+            var videoJsPlayer = videojs(video, options)
+            const isMonolithic = true;
+            c2paPlayer = new C2PAPlayer(videoJsPlayer, video, isMonolithic);
+            c2paPlayer.initialize();
+
+            /* Initialize native video element */
+            video.src = url;
+            video.type = 'video/mp4';
+
+            /* Once video is ready for playback, initialize c2pa plugin,
+            responsible for C2PA validation */
+            video.addEventListener('canplay', function() {
+                c2pa_init(video, playbackUpdate);
+            });
+        }
+
+        /* Responsible for updating c2pa player with c2pa information */
+        function playbackUpdate(e) {
+            c2paPlayer.playbackUpdate(e.c2pa_status);
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            init();
+        });
+
+    </script>
+</head>
+<body>
+
+<main>
+    <div class="container py-4">
+        <header class="pb-3 mb-4 border-bottom">
+            <img class=""
+                 src="../../lib/img/dashjs-logo.png"
+                 width="200">
+        </header>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="h-100 p-5 bg-light border rounded-3">
+                    <h3>C2PA Video Verification for Monolithic MP4</h3>
+                    <p>This sample shows how to perform C2PA validation for monolithic MP4</p>
+                </div>
+            </div>
+            <div class="col-md-8 ">
+                <video id="videoPlayer" class="video-js" controls="true"></video>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div id="code-output"></div>
+            </div>
+        </div>
+        <footer class="pt-3 mt-4 text-muted border-top">
+            &copy; DASH-IF
+        </footer>
+    </div>
+</main>
+
+<script src="../../highlighter.js"></script>
+</body>
+</html>

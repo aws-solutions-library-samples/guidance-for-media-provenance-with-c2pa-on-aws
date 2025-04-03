@@ -77,11 +77,9 @@ export const Library = () => {
             header: "Name",
             cell: (item) => (
               <Link
-                to={`/media-manager/inspect-asset?asset=${item.path
-                  .split("/")
-                  .pop()}`}
+                to={`/media-manager/inspect-asset?asset=${(item.path.split("/")).slice(1).join('/')}`}
               >
-                {item.path.split("/").pop()}
+                {(item.path.split("/")).slice(1).join('/')}
               </Link>
             ),
           },

@@ -7,18 +7,24 @@ import {
   Button,
   SelectProps,
   StatusIndicator,
+  Spinner
 } from "@cloudscape-design/components";
 
 import { GetPropertiesWithPathOutput } from "aws-amplify/storage";
+//import { getUrl } from 'aws-amplify/storage';
+import { getUrl } from 'aws-amplify/storage';
 import { StorageImage } from "@aws-amplify/ui-react-storage";
 import { C2paReadResult, generateVerifyUrl } from "c2pa";
-import { useGetAssetMutate } from "../../../../api/api";
+import { useGetAssetMutate,  useGetAsset} from "../../../../api/api";
 import { useSearchParams } from "react-router-dom";
 import { Dispatch, SetStateAction } from "react";
 import { ManifestInfo } from "./ManifestInfo";
+//import { init_video } from "./DashVideo";
+import DASHReact  from "./DASHReact";
 
 import prettyBytes from "pretty-bytes";
 
+ 
 interface IOverview {
   provenance?: C2paReadResult;
   assetRefetch: () => Promise<unknown>;
@@ -26,6 +32,7 @@ interface IOverview {
   setActiveTabId: Dispatch<SetStateAction<string>>;
   setSelectedOption: Dispatch<SetStateAction<SelectProps.Option>>;
 }
+
 
 export const Overview = ({
   provenance,
@@ -36,7 +43,8 @@ export const Overview = ({
   const [searchParams] = useSearchParams();
 
   const { mutateAsync } = useGetAssetMutate();
-
+  
+  const mainUrl = useGetAsset(`${searchParams.get("asset")}` ?? "");
   return (
     <SpaceBetween size="s">
       <Container header={<Header variant="h3">Source</Header>}>
@@ -57,7 +65,7 @@ export const Overview = ({
             },
             {
               label: "Last Modified",
-              value: fileProperties?.lastModified?.toString(),
+              value: fileProperties?.toString(),
             },
           ]}
         />
@@ -87,11 +95,28 @@ export const Overview = ({
         }
       >
         <SpaceBetween alignItems="center" size={"xxs"}>
-          <StorageImage
-            height={"30vh"}
-            alt={searchParams.get("asset") ?? ""}
-            path={`assets/${searchParams.get("asset")}`}
-          />
+
+          {searchParams.get("asset")?.endsWith(".mpd") ? (
+            
+            mainUrl.isLoading ? (
+              <Spinner />
+            ) : (
+              <DASHReact
+                url='https://cc-assets.netlify.app/video/fmp4-samples/boat.mpd'
+                //{mainUrl.data?.url.toString()}
+                //"https://c2pastack-866295544967-us-east-1-frontend-storage.s3.us-east-1.amazonaws.com/assets/guy_lafleur/playlist.mpd"
+                controls={true}
+                autoPlay={false}
+                className="video-js"
+              />
+            )
+          ) : (
+            <StorageImage
+              height={"30vh"}
+              alt={searchParams.get("asset") ?? ""}
+              path={`assets/${searchParams.get("asset")}`}
+            />
+          )}
         </SpaceBetween>
       </Container>
 
