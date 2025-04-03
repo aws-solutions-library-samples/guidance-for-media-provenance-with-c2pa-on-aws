@@ -20,7 +20,8 @@ export const Library = () => {
     ListPaginateWithPathOutput["items"]
   >([]);
 
-  const { data, isLoading, refetch, isRefetching } = useListAssets();
+  const { data, isLoading, refetch, isRefetching } =
+    useListAssets("complete/assets/");
   const { mutate, isPending } = useRemoveFiles(() => {
     setSelectedItems([]);
     refetch();
@@ -95,7 +96,7 @@ export const Library = () => {
           {
             id: "lastModified",
             header: "Last Modified",
-            cell: (item) => (item.lastModified ?? "N/A").toString(),
+            cell: (item) => new Date(item.lastModified ?? "").toLocaleString(),
           },
         ]}
         empty={

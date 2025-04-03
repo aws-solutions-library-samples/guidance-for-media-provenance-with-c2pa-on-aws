@@ -103,13 +103,13 @@ const createManifest = async ({
       await s3Client.send(
         new PutObjectCommand({
           Bucket: process.env.uiStorageBucket,
-          Key: `assets/${newTitle}`,
+          Key: `complete/assets/${newTitle}`,
           Body: await newImage.arrayBuffer(),
           ContentType: newImage.headers.get("Content-Type"),
         })
       );
 
-      return { manifest: `assets/${newTitle}` };
+      return { manifest: `complete/assets/${newTitle}` };
     case "fargate":
       const fargateUrl = new URL(`http://${process.env.FargateALB}`);
       const fargatePayload = {
@@ -144,13 +144,123 @@ const createManifest = async ({
       await s3Client.send(
         new PutObjectCommand({
           Bucket: process.env.uiStorageBucket,
-          Key: `assets/${newTitle}`,
+          Key: `complete/assets/${newTitle}`,
           Body: await fargateNewImage.arrayBuffer(),
           ContentType: fargateNewImage.headers.get("Content-Type"),
         })
       );
 
-      return { manifest: `assets/${newTitle}` };
+      return { manifest: `complete/assets/${newTitle}` };
+    default:
+      throw new Error(`Invalid compute type: ${computeType}`);
+  }
+};
+
+interface ICreatefMP4Manifest {
+  newTitle: string;
+  computeType: string;
+  initFile: string;
+  fragmentsPattern: string;
+  manifestFile: string;
+}
+const createFmp4Manifest = async ({
+  computeType,
+  newTitle,
+  initFile,
+  fragmentsPattern,
+  manifestFile,
+}: ICreatefMP4Manifest) => {
+  switch (computeType) {
+    case "lambda":
+      // const url = new URL(process.env.LambdaFnURL!);
+      // const payload = {
+      //   new_title: newTitle,
+      //   asset_url,
+      //   assertions_json_url,
+      //   ingredients_url,
+      // };
+
+      // const request = new HttpRequest({
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //     Host: url.hostname,
+      //   },
+      //   hostname: url.hostname,
+      //   path: "/sign_file",
+      //   body: JSON.stringify(payload),
+      // });
+
+      // const signedRequest = await new SignatureV4({
+      //   credentials: defaultProvider(),
+      //   region: process.env.AWS_DEFAULT_REGION,
+      //   service: "lambda",
+      //   sha256: Sha256,
+      // }).sign(request);
+
+      // const signfileResponse = await fetch(
+      //   `${url.origin}/sign_file`,
+      //   signedRequest
+      // );
+
+      // if (!signfileResponse.ok) throw new Error(signfileResponse.statusText);
+
+      // const { manifest } = await signfileResponse.json();
+
+      // const newImage = await fetch(manifest);
+
+      // await s3Client.send(
+      //   new PutObjectCommand({
+      //     Bucket: process.env.uiStorageBucket,
+      //     Key: `complete/assets/${newTitle}`,
+      //     Body: await newImage.arrayBuffer(),
+      //     ContentType: newImage.headers.get("Content-Type"),
+      //   })
+      // );
+
+      // return { manifest: `fragments/assets/${newTitle}` };
+      throw new Error("Not implemented");
+    case "fargate":
+      const fargateUrl = new URL(`http://${process.env.FargateALB}`);
+      const fargatePayload = {
+        new_title: newTitle,
+        init_file: initFile,
+        fragments_pattern: fragmentsPattern,
+        manifest_file: manifestFile,
+      };
+
+      const fargateRequest = new HttpRequest({
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Host: fargateUrl.hostname,
+        },
+        hostname: fargateUrl.hostname,
+        path: "/sign_fmp4",
+        body: JSON.stringify(fargatePayload),
+      });
+
+      const fargateResponse = await fetch(
+        `${fargateUrl.origin}/sign_fmp4`,
+        fargateRequest
+      );
+
+      if (!fargateResponse.ok) throw new Error(fargateResponse.statusText);
+
+      const fargateManifest = await fargateResponse.json();
+
+      const fargateNewImage = await fetch(fargateManifest.manifest);
+
+      await s3Client.send(
+        new PutObjectCommand({
+          Bucket: process.env.uiStorageBucket,
+          Key: `fragments/assets/${newTitle}`,
+          Body: await fargateNewImage.arrayBuffer(),
+          ContentType: fargateNewImage.headers.get("Content-Type"),
+        })
+      );
+
+      return { manifest: `fragments/assets/${newTitle}` };
     default:
       throw new Error(`Invalid compute type: ${computeType}`);
   }
@@ -163,6 +273,8 @@ const lambdaHandler = async (event: {
   switch (event.info.fieldName) {
     case "createManifest":
       return await createManifest(event.arguments.input);
+    case "createFMP4Manifest":
+      return await createFmp4Manifest(event.arguments.input);
     default:
       throw new Error(`Invalid GraphQL Path: ${event.info.fieldName}`);
   }

@@ -6,8 +6,17 @@ input CreateManifest {
   ingredientsUpload: [String]
 }
 
+input CreateFMP4Manifest {
+  computeType: String
+  newTitle: String
+  initFile: String
+  fragmentsPattern: String
+  manifestFile: String
+}
+
 type Mutation {
   createManifest(input: CreateManifest!): AWSJSON
+  createFMP4Manifest(input: CreateFMP4Manifest!): AWSJSON
 }
 
 type Query {

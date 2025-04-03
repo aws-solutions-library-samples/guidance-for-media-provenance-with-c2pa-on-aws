@@ -58,6 +58,7 @@ const navItems: SideNavigationProps.Item[] = [
       },
     ],
   },
+
   {
     type: "section",
     text: "Simulations",
@@ -74,6 +75,51 @@ const navItems: SideNavigationProps.Item[] = [
         href: "",
         info: (
           <NavigationLink path={"/simulations/article-1"} title={"Article 1"} />
+        ),
+      },
+    ],
+  },
+  {
+    type: "section",
+    text: "Fragmented MP4",
+    items: [
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: <NavigationLink path={"/fmp4-manager"} title={"Library"} />,
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/fmp4-manager/upload-asset-fmp4"}
+            title={"Upload fMP4 Asset"}
+          />
+        ),
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/fmp4-manager/sign-fmp4"}
+            title={"Sign fMP4"}
+          />
+        ),
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/fmp4-manager/inspect-asset"}
+            title={"Dash Player Example"}
+          />
         ),
       },
     ],
