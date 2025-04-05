@@ -195,7 +195,7 @@ export const useCreateNewFMP4Manifest = () => {
       return JSON.parse(data.createFMP4Manifest);
     },
   });
-};
+}
 
 interface IUseConvertMP4ToFMP4 {
   newTitle: string;

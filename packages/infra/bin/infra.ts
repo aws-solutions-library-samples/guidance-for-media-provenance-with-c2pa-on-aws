@@ -7,7 +7,7 @@ import { AwsSolutionsChecks } from "cdk-nag";
 import "source-map-support/register";
 
 const app = new cdk.App();
-new C2paStack(app, "C2paStack201", {
+new C2paStack(app, "C2paStack202", {
   env: {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
