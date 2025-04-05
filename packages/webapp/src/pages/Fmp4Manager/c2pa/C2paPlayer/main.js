@@ -1,147 +1,146 @@
 /**
- * @module c2pa-player
- * @param {object=} videoJsPlayer - videojs reference
- * @param {object=} videoHtml - video html element
+ * C2PA Player
+ * A wrapper for video.js that adds C2PA verification capabilities
  */
 
-import { initializeC2PAControlBar } from "./C2paControlBar/C2paControlBarFunctions.js";
-import {
-  displayFrictionOverlay,
-  initializeFrictionOverlay,
-} from "./C2paFrictionModal/C2paFrictionModalFunctions.js";
-import {
-  adjustC2PAMenu,
-  initializeC2PAMenu,
-  updateC2PAMenu,
-} from "./C2paMenu/C2paMenuFunctions.js";
-import { getTimelineFunctions } from "./C2paTimeline/C2paTimelineFunctions.js";
-
-export var C2PAPlayer = function (
-  videoJsPlayer,
-  videoHtml,
-  isMonolithic = false
-) {
-  //Video.js player instance
-  let videoPlayer = videoJsPlayer;
-  const videoElement = videoHtml;
-
-  //c2pa menu and control bar elements
-  let c2paMenu;
-  let c2paControlBar;
-  let {
-    getCompromisedRegions,
-    handleC2PAValidation,
-    handleOnSeeked,
-    handleOnSeeking,
-    updateC2PATimeline,
-  } = getTimelineFunctions();
-
-  //An overlay to be shown to the user in case the initial manifest validation fails
-  //Used to warn the user the content cannot be trusted
-  let frictionOverlay;
-  let isManifestInvalid = false; //TODO: placeholder, this should be set based on info from the c2pa validation
-
-  let seeking = false;
-  let playbackStarted = false;
-  let lastPlaybackTime = 0.0;
-
-  //A playback update above this threshold is considered a seek
-  const minSeekTime = 0.5;
-
-  //Adjust height of c2pa menu with respect to the whole player
-  const c2paMenuHeightOffset = 30;
-
-  let setPlaybackStarted = function () {
-    playbackStarted = true;
-  };
-
-  //Public API
-  return {
-    initialize: function () {
-      console.log("[C2PA] Initializing C2PAPlayer", videoPlayer, videoElement);
-
-      //Initialize c2pa timeline and menu
-      initializeC2PAControlBar(videoPlayer);
-      initializeC2PAMenu(videoPlayer, c2paMenu);
-      //Initialize friction overlay to be displayed if initial manifest validation fails
-      frictionOverlay = initializeFrictionOverlay(
-        videoPlayer,
-        setPlaybackStarted
-      );
-
-      //Get c2pa menu and control bar elements from html
-      c2paMenu = videoPlayer.controlBar.getChild("C2PAMenuButton");
-      c2paControlBar = videoPlayer.controlBar.progressControl.seekBar.getChild(
-        "C2PALoadProgressBar"
-      );
-
-      videoPlayer.on("play", function () {
-        if (isManifestInvalid && !playbackStarted) {
-          console.log("[C2PA] Manifest invalid, displaying friction overlay");
-          displayFrictionOverlay(playbackStarted, videoPlayer, frictionOverlay);
-        } else {
-          setPlaybackStarted();
-        }
+export class C2PAPlayer {
+  constructor(videoJsPlayer, videoElement) {
+    this.player = videoJsPlayer;
+    this.videoElement = videoElement;
+    this.c2paStatus = {
+      active: false,
+      verified: false,
+      manifest: null,
+      error: null
+    };
+    
+    // DOM elements for C2PA UI components
+    this.controlBar = null;
+    this.menu = null;
+    this.timeline = null;
+    this.frictionModal = null;
+    
+    console.log("C2PA Player initialized");
+  }
+  
+  /**
+   * Initialize the C2PA player UI components
+   */
+  initialize() {
+    console.log("Initializing C2PA Player UI");
+    
+    // Create a container for C2PA UI elements
+    const container = document.createElement('div');
+    container.className = 'c2pa-container';
+    
+    // Add the container to the player
+    if (this.videoElement && this.videoElement.parentNode) {
+      this.videoElement.parentNode.appendChild(container);
+    }
+    
+    // Initialize UI components (in a real implementation, these would be actual components)
+    this.initializeControlBar();
+    this.initializeMenu();
+    this.initializeTimeline();
+    this.initializeFrictionModal();
+    
+    // Set up event listeners
+    this.setupEventListeners();
+  }
+  
+  /**
+   * Initialize the control bar component
+   */
+  initializeControlBar() {
+    console.log("Initializing C2PA Control Bar");
+    // In a real implementation, this would create the control bar UI
+  }
+  
+  /**
+   * Initialize the menu component
+   */
+  initializeMenu() {
+    console.log("Initializing C2PA Menu");
+    // In a real implementation, this would create the menu UI
+  }
+  
+  /**
+   * Initialize the timeline component
+   */
+  initializeTimeline() {
+    console.log("Initializing C2PA Timeline");
+    // In a real implementation, this would create the timeline UI
+  }
+  
+  /**
+   * Initialize the friction modal component
+   */
+  initializeFrictionModal() {
+    console.log("Initializing C2PA Friction Modal");
+    // In a real implementation, this would create the friction modal UI
+  }
+  
+  /**
+   * Set up event listeners for player events
+   */
+  setupEventListeners() {
+    if (this.player) {
+      this.player.on('play', () => {
+        console.log('C2PA Player: Video playing');
       });
-
-      videoPlayer.on("seeked", function () {
-        seeking = handleOnSeeked(videoPlayer.currentTime());
+      
+      this.player.on('pause', () => {
+        console.log('C2PA Player: Video paused');
       });
-
-      videoPlayer.on("seeking", function () {
-        let seekResults = handleOnSeeking(
-          videoPlayer.currentTime(),
-          playbackStarted,
-          lastPlaybackTime,
-          isMonolithic,
-          c2paControlBar,
-          videoPlayer
-        );
-        seeking = seekResults[0];
-        lastPlaybackTime = seekResults[1];
+      
+      this.player.on('ended', () => {
+        console.log('C2PA Player: Video ended');
       });
-
-      //Resize the c2pa menu
-      //TODO: This is a workaround to resize the menu, as the menu is not resized when the player is resized
-      setInterval(function () {
-        adjustC2PAMenu(c2paMenu, videoElement, c2paMenuHeightOffset);
-      }, 500);
-      adjustC2PAMenu(c2paMenu, videoElement, c2paMenuHeightOffset);
-
-      console.log("[C2PA] Initialization complete");
-    },
-
-    //Playback update with updates on c2pa manifest and validation
-    playbackUpdate: function (c2paStatus) {
-      const currentTime = videoPlayer.currentTime();
-
-      //We only update the c2pa timeline if the playback is not seeking and the playback time has increased
-      if (
-        !seeking &&
-        currentTime >= lastPlaybackTime &&
-        currentTime - lastPlaybackTime < minSeekTime
-      ) {
-        console.log(
-          "[C2PA] Validation update: ",
-          lastPlaybackTime,
-          currentTime
-        );
-
-        //Creates new c2pa progress segment to be added to the progress bar
-        handleC2PAValidation(c2paStatus.verified, currentTime, c2paControlBar);
-        //Update c2pa progress timeline
-        updateC2PATimeline(currentTime, videoPlayer, c2paControlBar);
-        //Update c2pa menu based on manifest
-        updateC2PAMenu(
-          c2paStatus,
-          c2paMenu,
-          isMonolithic,
-          videoPlayer,
-          getCompromisedRegions
-        );
-      }
-
-      lastPlaybackTime = currentTime;
-    },
-  };
-};
+    }
+  }
+  
+  /**
+   * Update the player with new C2PA status information
+   * @param {Object} status - The C2PA status object
+   */
+  playbackUpdate(status) {
+    console.log("C2PA Player: Playback update", status);
+    this.c2paStatus = status;
+    
+    // Update UI components based on new status
+    this.updateUI();
+  }
+  
+  /**
+   * Update the UI components based on current C2PA status
+   */
+  updateUI() {
+    // In a real implementation, this would update all UI components
+    console.log("Updating C2PA UI with status:", this.c2paStatus);
+    
+    // Example: Update verification indicator
+    const verificationIndicator = document.querySelector('.c2pa-verification-indicator');
+    if (verificationIndicator) {
+      verificationIndicator.className = `c2pa-verification-indicator ${this.c2paStatus.verified ? 'verified' : 'unverified'}`;
+    }
+  }
+  
+  /**
+   * Clean up resources when the player is destroyed
+   */
+  dispose() {
+    console.log("Disposing C2PA Player");
+    // Clean up event listeners and DOM elements
+    if (this.player) {
+      this.player.off('play');
+      this.player.off('pause');
+      this.player.off('ended');
+    }
+    
+    // Remove DOM elements
+    const container = document.querySelector('.c2pa-container');
+    if (container && container.parentNode) {
+      container.parentNode.removeChild(container);
+    }
+  }
+}

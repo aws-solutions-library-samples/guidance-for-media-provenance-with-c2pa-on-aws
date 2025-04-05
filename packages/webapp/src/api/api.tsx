@@ -43,17 +43,6 @@ export const useListAssets = (path: string) => {
           },
         },
       });
-      console.log("Listed assets: " + JSON.stringify(result));
-      const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".mpd"];
-      const ll = result.items.filter(asset => {
-        const extension = asset.path.toLowerCase().split('.').pop();
-        if(allowedExtensions.includes('.' + extension)) {
-          console.log("Allowed asset: " + asset.path);
-          return asset;
-        }
-      });
-      console.log("Listed assets: " + JSON.stringify(ll));
-      return {'items': ll};
     },
   });
 };

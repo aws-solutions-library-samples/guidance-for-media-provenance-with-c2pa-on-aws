@@ -4,11 +4,17 @@ import c2pa
 import json
 import glob
 import boto3
+import tempfile
 import mimetypes
+
+from fastapi import HTTPException, status
 from urllib import request
 from os.path import splitext
 from datetime import datetime
 from urllib.parse import urlparse
+from utils import (
+    run_c2pa_command_for_fmp4,
+)
 
 from typing import List, Optional, Any
 from pydantic import BaseModel, Field
@@ -134,6 +140,96 @@ def sign_file(signFileEvent: SignFileEvent):
     )
 
     return {"manifest": manifest}
+
+class SignFmp4Event(BaseModel):
+    new_title: str
+    init_file: str
+    fragments_pattern: str
+    manifest_file: str
+
+
+@app.post("/sign_fmp4")
+async def sign_fmp4(request: SignFmp4Event):
+    with tempfile.TemporaryDirectory() as temp_dir:
+        init_file_path = os.path.join(temp_dir, "init.mp4")
+        logger.info(f"Downloading init file: {request.init_file}")
+        print("starting download")
+
+        with open(init_file_path, "wb") as f:
+            init_config = urlparse(request.init_file)
+            print(init_config)
+            s3.download_fileobj(init_config.netloc, init_config.path.lstrip("/"), f)
+
+        # List fragments
+        logger.info("Listing fragments...")
+        paginator = s3.get_paginator("list_objects_v2")
+        fragments = []
+        fragments_config = urlparse(request.fragments_pattern)
+
+        for page in paginator.paginate(
+            Bucket=fragments_config.netloc,
+            Prefix=os.path.dirname(fragments_config.path.lstrip("/")),
+        ):
+            if "Contents" in page:
+                for obj in page["Contents"]:
+                    if obj["Key"].endswith(".m4s"):  # Only process .m4s files
+                        fragment_path = os.path.join(
+                            temp_dir, os.path.basename(obj["Key"])
+                        )
+                        with open(fragment_path, "wb") as f:
+                            s3.download_fileobj(fragments_config.netloc, obj["Key"], f)
+                        fragments.append(fragment_path)
+
+        fragments.sort()  # Ensure fragments are in order
+
+        # Download manifest file
+        manifest_path = os.path.join(temp_dir, "manifest.json")
+        with open(manifest_path, "wb") as f:
+            manifest_config = urlparse(request.manifest_file)
+            s3.download_fileobj(
+                manifest_config.netloc, manifest_config.path.lstrip("/"), f
+            )
+
+        # Create output directory
+        output_dir = os.path.join(temp_dir, "output")
+        os.makedirs(output_dir, exist_ok=True)
+
+        print(os.listdir(temp_dir))
+
+        # Run c2pa command
+        success, output = run_c2pa_command_for_fmp4(
+            init_file=init_file_path,
+            fragments_glob=f"{temp_dir}/*.m4s",
+            output_dir=output_dir,
+            manifest_file=manifest_path,
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=500, detail=f"C2PA signing failed: {output}"
+            )
+
+        print(os.listdir(output_dir))
+
+        output_folder = os.path.join(output_dir, temp_dir.split("/").pop())
+
+        for root, _, files in os.walk(output_folder):
+            for file in files:
+                s3.upload_file(
+                    os.path.join(output_folder, file),
+                    output_bucket,
+                    f"fragments/processed/{request.new_title}/{file}",
+                )
+
+        # manifest = s3.generate_presigned_url(
+        #     "get_object",
+        #     Params={
+        #         "Bucket": output_bucket,
+        #         "Key": output_key,
+        #     },
+        # )
+
+        return {"manifest": "manifest"}
 
 
 class ReadFileEvent(BaseModel):

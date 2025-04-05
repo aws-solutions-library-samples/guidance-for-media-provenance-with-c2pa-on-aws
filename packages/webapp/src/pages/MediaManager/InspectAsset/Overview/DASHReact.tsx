@@ -4,14 +4,8 @@ import "https://vjs.zencdn.net/8.3.0/video.js";
 import 'https://cdn.dashjs.org/v4.7.2/dash.all.min.js';
 import {c2pa_init} from '../../../../c2pa/plugin-dash/c2pa-dash-plugin.js';
 import {C2PAPlayer} from '../../../../c2pa/C2paPlayer/main.js'
-import {
-  getUrl
-} from "aws-amplify/storage";
-
 import React from 'react';
-
 import '../../../../c2pa/c2pa-player.css';
-import { get } from "lodash";
 
 export interface props {
   className?: string
@@ -49,23 +43,21 @@ class DASHReact extends React.Component<props, state> {
     this.setState({ player: null });
   }
 
-  initializeDash(url: string, options?: MediaPlayerSettingClass, autoPlay = false) {
+  initializeDash(url: string, options?: Record<string, any>, autoPlay = false) {
     console.log('initializeDash', url, options, autoPlay);
     var player = dashjs.MediaPlayer().create();
-    var options = {fluid: true , controlBar: { children: ['playToggle' , 'progressControl', "currentTimeDisplay", 'volumePanel','pictureInPictureToggle','fullscreenToggle']}}
+    var playerOptions = {fluid: true , controlBar: { children: ['playToggle' , 'progressControl', "currentTimeDisplay", 'volumePanel','pictureInPictureToggle','fullscreenToggle']}}
 
     /* Create videojs player and c2pa player */
     /* Responsible for UI and playback control */
-    var video = document.querySelector('#videoPlayer');
+    var video = document.querySelector('#videoPlayer') as HTMLVideoElement;
     //var videoJsPlayer = videojs('videoPlayer', options);
-    var videoJsPlayer = videojs('videoPlayer', options, () => {
+    var videoJsPlayer = videojs('videoPlayer', playerOptions, () => {
       videojs.log('onPlayerReady', this);
     });
     var c2paJsPlayer = new C2PAPlayer(videoJsPlayer, video);
     c2paJsPlayer.initialize();
     
-
-    var videoUrl;
     c2pa_init(player, function (e) {
       /* Update c2pa player with current c2pa status update */
       console.log("c2pa_init", e);
@@ -103,4 +95,3 @@ class DASHReact extends React.Component<props, state> {
 }
 
 export default DASHReact;
-  
