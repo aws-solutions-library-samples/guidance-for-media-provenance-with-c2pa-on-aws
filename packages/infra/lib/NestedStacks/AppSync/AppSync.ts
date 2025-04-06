@@ -176,6 +176,14 @@ export class AppSync extends Construct {
       runtime: appsync.FunctionRuntime.JS_1_0_0,
       code: appsync.Code.fromInline(pipelineCode),
     });
+
+    this.graphqlApi.createResolver("Convert MP4 To FMP4", {
+      typeName: "Mutation",
+      fieldName: "convertMP4ToFMP4",
+      pipelineConfig: [appsyncFn],
+      runtime: appsync.FunctionRuntime.JS_1_0_0,
+      code: appsync.Code.fromInline(pipelineCode),
+    });
   }
 }
 

@@ -23,3 +23,11 @@ export const createFMP4Manifest = /* GraphQL */ `mutation CreateFMP4Manifest($in
   APITypes.CreateFMP4ManifestMutationVariables,
   APITypes.CreateFMP4ManifestMutation
 >;
+
+export const convertMP4ToFMP4 = /* GraphQL */ `mutation ConvertMP4ToFMP4($input: ConvertMP4ToFMP4!) {
+  convertMP4ToFMP4(input: $input)
+}
+` as GeneratedMutation<
+  APITypes.ConvertMP4ToFMP4MutationVariables,
+  APITypes.ConvertMP4ToFMP4Mutation
+>;

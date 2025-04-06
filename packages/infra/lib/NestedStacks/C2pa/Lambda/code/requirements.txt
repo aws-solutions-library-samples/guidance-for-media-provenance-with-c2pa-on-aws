@@ -2,3 +2,4 @@ boto3==1.37.5
 fastapi==0.115.11
 cryptography==44.0.2
 c2pa-python==0.6.1
+aws-lambda-powertools

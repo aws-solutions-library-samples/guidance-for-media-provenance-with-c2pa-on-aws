@@ -36,12 +36,10 @@ export class Lambda extends Construct {
 
     const c2paLambdaRuntime = lambda.Runtime.PYTHON_3_13;
 
-    const lambdaC2pa = new lambda.Function(this, "C2PA Lambda", {
-      code: lambda.Code.fromAsset(path.join(__dirname, "code")),
+    const lambdaC2pa = new lambda.DockerImageFunction(this, "C2PA Lambda", {
+      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, "code")),
       functionName: `${stack.stackName}-c2pa-lambda`,
       timeout: cdk.Duration.minutes(1),
-      runtime: c2paLambdaRuntime,
-      handler: "index.handler",
       vpc,
       environment: {
         output_bucket: backendStorageBucket.bucketName,
@@ -52,17 +50,6 @@ export class Lambda extends Construct {
       // https://docs.aws.amazon.com/lambda/latest/operatorguide/computing-power.html
       memorySize: 10240,
       ephemeralStorageSize: cdk.Size.mebibytes(10240),
-      layers: [
-        lambda.LayerVersion.fromLayerVersionArn(
-          this,
-          "Powertools for AWS Lambda (Python)",
-          `arn:aws:lambda:${stack.region}:017000801446:layer:AWSLambdaPowertoolsPythonV3-python313-x86_64:8`
-        ),
-        new python.PythonLayerVersion(this, "C2PA Libraries", {
-          entry: path.join(__dirname, "code"),
-          compatibleRuntimes: [c2paLambdaRuntime],
-        }),
-      ],
     });
     this.fnUrl = lambdaC2pa.addFunctionUrl();
     backendStorageBucket.grantReadWrite(lambdaC2pa);

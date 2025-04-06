@@ -7,6 +7,7 @@ import {
   Table,
   Tabs,
 } from "@cloudscape-design/components";
+import { FMP4Box } from "../FMP4Box/FMP4Box";
 
 import { useListAssets } from "../../../api/api";
 import { Link, useNavigate } from "react-router-dom";
@@ -23,7 +24,7 @@ export const FMP4Library = () => {
         tabs={[
           {
             label: "Fragments",
-            id: "first",
+            id: "fragments",
             content: (
               <Table
                 header={
@@ -71,7 +72,7 @@ export const FMP4Library = () => {
           },
           {
             label: "Outputs",
-            id: "second",
+            id: "outputs",
             content: (
               <Table
                 header={
@@ -95,7 +96,7 @@ export const FMP4Library = () => {
                     id: "name",
                     header: "Name",
                     cell: () => (
-                      <Link target="_blank">{"Fragment Output Location"}</Link>
+                      <Link to ='#' target="_blank">{"Fragment Output Location"}</Link>
                     ),
                   },
                 ]}
@@ -118,6 +119,11 @@ export const FMP4Library = () => {
                 variant="container"
               />
             ),
+          },
+          {
+            label: "MP4Box",
+            id: "mp4box",
+            content: <FMP4Box />,
           },
         ]}
       />
