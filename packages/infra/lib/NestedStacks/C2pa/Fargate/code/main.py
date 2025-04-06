@@ -327,9 +327,9 @@ async def convert_mp4(request: ConvertMP4Event):
                 s3.upload_file(
                     os.path.join(output_folder, file),
                     output_bucket,
-                    f"fragments/processed/{request.mp4_file_name}/{file}"  # Same path as sign_fmp4
+                    f"fragments/processed/{request.new_title}/{file}"  # Same path as sign_fmp4
                 )
-        return {"status": "success", "output_path": f"fragments/processed/{request.mp4_file_name}/"}
+        return {"status": "success", "output_path": f"fragments/processed/{request.new_title}/"}
 
 ########################################################################
 ########################## /read_c2pa ##################################
