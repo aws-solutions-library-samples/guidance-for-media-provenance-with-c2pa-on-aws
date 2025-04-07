@@ -23,7 +23,7 @@ export const FMP4Library = () => {
         tabs={[
           {
             label: "Fragments",
-            id: "first",
+            id: "fragments",
             content: (
               <Table
                 header={
@@ -71,7 +71,7 @@ export const FMP4Library = () => {
           },
           {
             label: "Outputs",
-            id: "second",
+            id: "outputs",
             content: (
               <Table
                 header={
@@ -95,7 +95,7 @@ export const FMP4Library = () => {
                     id: "name",
                     header: "Name",
                     cell: () => (
-                      <Link target="_blank">{"Fragment Output Location"}</Link>
+                      <Link to ='#' target="_blank">{"Fragment Output Location"}</Link>
                     ),
                   },
                 ]}

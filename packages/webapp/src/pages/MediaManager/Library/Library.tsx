@@ -79,7 +79,7 @@ export const Library = () => {
               <Link
                 to={`/media-manager/inspect-asset?asset=${(item.path.split("/")).slice(1).join('/')}`}
               >
-                {(item.path.split("/")).slice(1).join('/')}
+                {item.path.split("/").pop()}
               </Link>
             ),
           },

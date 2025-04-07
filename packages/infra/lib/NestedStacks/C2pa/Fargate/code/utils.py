@@ -6,6 +6,7 @@ import datetime
 import glob
 import sys
 import os
+import shutil
 
 
 async def unhandled_exception_handler(
@@ -37,7 +38,6 @@ def garbage_collect_folder(pattern):
     for f in files:
         os.remove(f)
     print(f"{datetime.datetime.now()}: Finished!")
-
 
 def run_c2pa_command_for_fmp4(init_file, fragments_glob, output_dir, manifest_file):
     """

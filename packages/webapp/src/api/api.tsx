@@ -9,7 +9,7 @@ import {
 
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { SelectProps } from "@cloudscape-design/components";
-import { createFMP4Manifest, createManifest } from "../graphql/mutations";
+import { createFMP4Manifest, createManifest, convertMP4ToFMP4 } from "../graphql/mutations";
 import { generateClient } from "aws-amplify/api";
 
 const client = generateClient();
@@ -43,17 +43,6 @@ export const useListAssets = (path: string) => {
           },
         },
       });
-      console.log("Listed assets: " + JSON.stringify(result));
-      const allowedExtensions = [".jpg", ".jpeg", ".png", ".gif", ".mpd"];
-      const ll = result.items.filter(asset => {
-        const extension = asset.path.toLowerCase().split('.').pop();
-        if(allowedExtensions.includes('.' + extension)) {
-          console.log("Allowed asset: " + asset.path);
-          return asset;
-        }
-      });
-      console.log("Listed assets: " + JSON.stringify(ll));
-      return {'items': ll};
     },
   });
 };
@@ -204,6 +193,52 @@ export const useCreateNewFMP4Manifest = () => {
       });
 
       return JSON.parse(data.createFMP4Manifest);
+    },
+  });
+}
+
+interface IUseConvertMP4ToFMP4 {
+  newTitle: string;
+  mp4File: File;
+}
+
+export const useConvertMP4ToFMP4 = () => {
+  return useMutation({
+    mutationFn: async ({
+      newTitle,
+      mp4File,
+    }: IUseConvertMP4ToFMP4) => {
+      // Convert the file to base64 for direct upload through GraphQL
+      const fileReader = new FileReader();
+      const fileBase64Promise = new Promise<string>((resolve, reject) => {
+        fileReader.onload = () => {
+          const base64 = fileReader.result?.toString().split(',')[1];
+          if (base64) {
+            resolve(base64);
+          } else {
+            reject(new Error('Failed to convert file to base64'));
+          }
+        };
+        fileReader.onerror = () => reject(fileReader.error);
+        fileReader.readAsDataURL(mp4File);
+      });
+      
+      const fileBase64 = await fileBase64Promise;
+      
+      // Call the GraphQL mutation to convert the MP4 file to fragmented MP4
+      const { data } = await client.graphql({
+        query: convertMP4ToFMP4,
+        variables: {
+          input: {
+            newTitle,
+            mp4FileName: mp4File.name,
+            mp4FileType: mp4File.type || 'video/mp4',
+            mp4FileBase64: fileBase64,
+          },
+        },
+      });
+
+      return JSON.parse(data.convertMP4ToFMP4);
     },
   });
 };
