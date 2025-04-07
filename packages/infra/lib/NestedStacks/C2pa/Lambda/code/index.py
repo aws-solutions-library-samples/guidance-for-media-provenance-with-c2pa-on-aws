@@ -33,9 +33,11 @@ app = LambdaFunctionUrlResolver(enable_validation=True)
 s3 = boto3.client("s3")
 secretsmanager = boto3.client("secretsmanager")
 
+input_bucket = os.environ["input_bucket"]
 output_bucket = os.environ["output_bucket"]
 certificate = os.environ["certificate"]
 private_key = os.environ["private_key"]
+
 
 
 class SignFileEvent(BaseModel):
@@ -83,25 +85,26 @@ def sign_file(signFileEvent: SignFileEvent):
     logger.info("Thumbnail added")
 
     # Add Ingredients
-    for ingredient in ingredients_url:
-        ingredient_path = urlparse(ingredient).path
-        ingredient_filename = ingredient_path.split("/").pop()
-        ingredient_no_extension, ingredient_extension = splitext(ingredient_filename)
-        ingredient_json = {
-            "title": ingredient_filename,
-            "relationship": "parentOf",
-            "thumbnail": {
-                "identifier": ingredient_path,
-                "format": ingredient_extension[1:],
-            },
-        }
-        ingredient_thumbnail = request.urlopen(ingredient)
-        builder.add_resource(ingredient_path, ingredient_thumbnail)
+    if ingredients_url:
+        for ingredient in ingredients_url:
+            ingredient_path = urlparse(ingredient).path
+            ingredient_filename = ingredient_path.split("/").pop()
+            ingredient_no_extension, ingredient_extension = splitext(ingredient_filename)
+            ingredient_json = {
+                "title": ingredient_filename,
+                "relationship": "parentOf",
+                "thumbnail": {
+                    "identifier": ingredient_path,
+                    "format": ingredient_extension[1:],
+                },
+            }
+            ingredient_thumbnail = request.urlopen(ingredient)
+            builder.add_resource(ingredient_path, ingredient_thumbnail)
 
-        ingredient = io.BytesIO(request.urlopen(ingredient).read())
-        builder.add_ingredient(ingredient_json, ingredient_extension[1:], ingredient)
+            ingredient_data = io.BytesIO(request.urlopen(ingredient).read())
+            builder.add_ingredient(ingredient_json, ingredient_extension[1:], ingredient_data)
 
-        logger.info(f"Ingredient added: {ingredient_filename}")
+            logger.info(f"Ingredient added: {ingredient_filename}")
 
     # Load the Key
     prv_key_value = secretsmanager.get_secret_value(SecretId=private_key)
@@ -157,39 +160,157 @@ def sign_fmp4(request: SignFmp4Event):
         logger.info(f"Downloading init file: {request.init_file}")
         print("starting download")
 
-        with open(init_file_path, "wb") as f:
-            init_config = urlparse(request.init_file)
-            print(init_config)
-            s3.download_fileobj(init_config.netloc, init_config.path.lstrip("/"), f)
-
-        # List fragments
-        logger.info("Listing fragments...")
-        paginator = s3.get_paginator("list_objects_v2")
-        fragments = []
-        fragments_config = urlparse(request.fragments_pattern)
-
-        for page in paginator.paginate(
-            Bucket=fragments_config.netloc,
-            Prefix=os.path.dirname(fragments_config.path.lstrip("/")),
-        ):
-            if "Contents" in page:
-                for obj in page["Contents"]:
-                    if obj["Key"].endswith(".m4s"):  # Only process .m4s files
-                        fragment_path = os.path.join(
-                            temp_dir, os.path.basename(obj["Key"])
+        # Instead of directly accessing S3, use HTTP URLs
+        # The URLs should be pre-signed URLs or publicly accessible
+        try:
+            with open(init_file_path, "wb") as f:
+                # Check if it's an HTTP URL
+                if request.init_file.startswith("http"):
+                    logger.info(f"Downloading from HTTP URL: {request.init_file}")
+                    response = request.urlopen(request.init_file)
+                    f.write(response.read())
+                # Check if it's an S3 URL that we need to convert to HTTP
+                elif request.init_file.startswith("s3://"):
+                    init_config = urlparse(request.init_file)
+                    bucket_name = init_config.netloc
+                    object_key = init_config.path.lstrip("/")
+                    
+                    # Check if this is one of our buckets (which we have permission to access)
+                    if bucket_name == input_bucket:
+                        logger.info(f"Downloading from bucket: {bucket_name}/{object_key}")
+                        s3.download_fileobj(bucket_name, object_key, f)
+                    else:
+                        # For other buckets, we need a pre-signed URL or public access
+                        logger.error(f"Access denied to bucket: {bucket_name}")
+                        raise ServiceError(
+                            status_code=403, 
+                            detail=f"Access denied to bucket: {bucket_name}. Please provide an HTTP URL or use one of the allowed buckets."
                         )
-                        with open(fragment_path, "wb") as f:
-                            s3.download_fileobj(fragments_config.netloc, obj["Key"], f)
-                        fragments.append(fragment_path)
+                else:
+                    logger.error(f"Unsupported URL scheme: {request.init_file}")
+                    raise ServiceError(
+                        status_code=400, 
+                        detail=f"Unsupported URL scheme. Use HTTP URLs or s3://{output_bucket}/... URLs."
+                    )
+        except Exception as e:
+            logger.exception(f"Error downloading init file: {str(e)}")
+            raise ServiceError(
+                status_code=500, 
+                detail=f"Error downloading init file: {str(e)}"
+            )
 
-        fragments.sort()  # Ensure fragments are in order
+        # Process fragments
+        logger.info("Processing fragments...")
+        fragments = []
+        
+        # Handle fragments pattern
+        try:
+            fragments_config = urlparse(request.fragments_pattern)
+            
+            # Check if it's an HTTP URL pattern
+            if request.fragments_pattern.startswith("http"):
+                logger.error("HTTP URL patterns for fragments are not supported")
+                raise ServiceError(
+                    status_code=400, 
+                    detail="HTTP URL patterns for fragments are not supported. Use s3:// URLs with the output bucket."
+                )
+            # Check if it's an S3 URL pattern
+            elif request.fragments_pattern.startswith("s3://"):
+                bucket_name = fragments_config.netloc
+                prefix = os.path.dirname(fragments_config.path.lstrip("/"))
+                
+                # Check if this is one of our buckets (which we have permission to access)
+                if bucket_name == output_bucket or bucket_name == input_bucket:
+                    logger.info(f"Listing fragments from bucket: {bucket_name}/{prefix}")
+                    paginator = s3.get_paginator("list_objects_v2")
+                    
+                    for page in paginator.paginate(
+                        Bucket=bucket_name,
+                        Prefix=prefix,
+                    ):
+                        if "Contents" in page:
+                            for obj in page["Contents"]:
+                                if obj["Key"].endswith(".m4s"):  # Only process .m4s files
+                                    fragment_path = os.path.join(
+                                        temp_dir, os.path.basename(obj["Key"])
+                                    )
+                                    logger.info(f"Downloading fragment: {obj['Key']}")
+                                    with open(fragment_path, "wb") as f:
+                                        s3.download_fileobj(bucket_name, obj["Key"], f)
+                                    fragments.append(fragment_path)
+                else:
+                    # For other buckets, we need a pre-signed URL or public access
+                    logger.error(f"Access denied to bucket: {bucket_name}")
+                    raise ServiceError(
+                        status_code=403, 
+                        detail=f"Access denied to bucket: {bucket_name}. Please use one of the allowed buckets."
+                    )
+            else:
+                logger.error(f"Unsupported URL scheme: {request.fragments_pattern}")
+                raise ServiceError(
+                    status_code=400, 
+                    detail=f"Unsupported URL scheme. Use s3://{output_bucket}/... URLs for fragments."
+                )
+                
+            fragments.sort()  # Ensure fragments are in order
+            logger.info(f"Downloaded {len(fragments)} fragments")
+            
+            if len(fragments) == 0:
+                logger.warning("No fragments found!")
+                raise ServiceError(
+                    status_code=404, 
+                    detail="No fragments found matching the pattern."
+                )
+        except Exception as e:
+            if isinstance(e, ServiceError):
+                raise e
+            logger.exception(f"Error processing fragments: {str(e)}")
+            raise ServiceError(
+                status_code=500, 
+                detail=f"Error processing fragments: {str(e)}"
+            )
 
         # Download manifest file
         manifest_path = os.path.join(temp_dir, "manifest.json")
-        with open(manifest_path, "wb") as f:
-            manifest_config = urlparse(request.manifest_file)
-            s3.download_fileobj(
-                manifest_config.netloc, manifest_config.path.lstrip("/"), f
+        
+        try:
+            # Check if it's an HTTP URL
+            if request.manifest_file.startswith("http"):
+                logger.info(f"Downloading manifest from HTTP URL: {request.manifest_file}")
+                response = request.urlopen(request.manifest_file)
+                with open(manifest_path, "wb") as f:
+                    f.write(response.read())
+            # Check if it's an S3 URL
+            elif request.manifest_file.startswith("s3://"):
+                manifest_config = urlparse(request.manifest_file)
+                manifest_bucket = manifest_config.netloc
+                manifest_key = manifest_config.path.lstrip("/")
+                
+                # Check if this is one of our buckets (which we have permission to access)
+                if manifest_bucket == output_bucket or manifest_bucket == input_bucket:
+                    logger.info(f"Downloading manifest from bucket: {manifest_bucket}/{manifest_key}")
+                    with open(manifest_path, "wb") as f:
+                        s3.download_fileobj(manifest_bucket, manifest_key, f)
+                else:
+                    # For other buckets, we need a pre-signed URL or public access
+                    logger.error(f"Access denied to bucket: {manifest_bucket}")
+                    raise ServiceError(
+                        status_code=403, 
+                        detail=f"Access denied to bucket: {manifest_bucket}. Please provide an HTTP URL or use one of the allowed buckets."
+                    )
+            else:
+                logger.error(f"Unsupported URL scheme: {request.manifest_file}")
+                raise ServiceError(
+                    status_code=400, 
+                    detail=f"Unsupported URL scheme. Use HTTP URLs or s3://{output_bucket}/... URLs."
+                )
+        except Exception as e:
+            if isinstance(e, ServiceError):
+                raise e
+            logger.exception(f"Error downloading manifest file: {str(e)}")
+            raise ServiceError(
+                status_code=500, 
+                detail=f"Error downloading manifest file: {str(e)}"
             )
 
         # Create output directory
@@ -243,15 +364,48 @@ class ReadFileEvent(BaseModel):
 def read_file(readFileEvent: ReadFileEvent):
     asset_url = readFileEvent.asset_url
     return_type = readFileEvent.return_type
-
-    filename = urlparse(asset_url).path.split("/").pop()
-    filename_no_extension, extension = splitext(filename)
-
-    reader = c2pa.Reader(extension[1:], io.BytesIO(request.urlopen(asset_url).read()))
-    match return_type:
-        case "json":
+    
+    try:
+        # Parse the URL
+        url_config = urlparse(asset_url)
+        filename = url_config.path.split("/").pop()
+        filename_no_extension, extension = splitext(filename)
+        
+        # Get the file content
+        if asset_url.startswith("http"):
+            logger.info(f"Reading from HTTP URL: {asset_url}")
+            file_content = io.BytesIO(request.urlopen(asset_url).read())
+        elif asset_url.startswith("s3://"):
+            bucket_name = url_config.netloc
+            object_key = url_config.path.lstrip("/")
+            
+            # Check if this is one of our buckets (which we have permission to access)
+            if bucket_name == output_bucket or bucket_name == input_bucket:
+                logger.info(f"Reading from bucket: {bucket_name}/{object_key}")
+                file_content = io.BytesIO()
+                s3.download_fileobj(bucket_name, object_key, file_content)
+                file_content.seek(0)  # Reset position to beginning of file
+            else:
+                # For other buckets, we need a pre-signed URL or public access
+                logger.error(f"Access denied to bucket: {bucket_name}")
+                raise ServiceError(
+                    status_code=403, 
+                    detail=f"Access denied to bucket: {bucket_name}. Please provide an HTTP URL or use one of the allowed buckets."
+                )
+        else:
+            logger.error(f"Unsupported URL scheme: {asset_url}")
+            raise ServiceError(
+                status_code=400, 
+                detail=f"Unsupported URL scheme. Use HTTP URLs or s3://{output_bucket}/... URLs."
+            )
+            
+        # Read the C2PA data
+        reader = c2pa.Reader(extension[1:], file_content)
+        
+        # Process based on return type
+        if return_type == "json":
             return json.loads(reader.json())
-        case "presigned_url":
+        elif return_type == "presigned_url":
             with open("/tmp/manifest.json", "w") as f:
                 json.dump(json.loads(reader.json()), f, indent=2)
                 logger.info(f"{datetime.now()}: Downloading asset_url")
@@ -274,6 +428,20 @@ def read_file(readFileEvent: ReadFileEvent):
             logger.info(f"{datetime.now()}: presigned URL created")
 
             return {"presigned_url": presigned_url}
+        else:
+            raise ServiceError(
+                status_code=400,
+                detail=f"Unsupported return_type: {return_type}. Use 'json' or 'presigned_url'."
+            )
+    except ServiceError as e:
+        # Re-raise service errors
+        raise e
+    except Exception as e:
+        logger.exception(f"Error reading file: {str(e)}")
+        raise ServiceError(
+            status_code=500,
+            detail=f"Error reading file: {str(e)}"
+        )
 
 
 @logger.inject_lambda_context(

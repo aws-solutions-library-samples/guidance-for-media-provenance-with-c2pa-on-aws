@@ -13,6 +13,7 @@ import { NagSuppressions } from "cdk-nag";
 
 interface LambdaProps {
   backendStorageBucket: s3.Bucket;
+  uiStorageBucket: s3.Bucket;
   certificate: secretsmanager.Secret;
   private_key: secretsmanager.Secret;
   vpc: ec2.Vpc;
@@ -24,7 +25,7 @@ export class Lambda extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    { certificate, private_key, backendStorageBucket, vpc }: LambdaProps
+    { certificate, private_key, backendStorageBucket, uiStorageBucket, vpc }: LambdaProps
   ) {
     super(scope, id);
 
@@ -45,6 +46,7 @@ export class Lambda extends Construct {
       vpc,
       environment: {
         output_bucket: backendStorageBucket.bucketName,
+        input_bucket: uiStorageBucket.bucketName,
         certificate: certificate.secretName,
         private_key: private_key.secretName,
       },
@@ -55,6 +57,7 @@ export class Lambda extends Construct {
     });
     this.fnUrl = lambdaC2pa.addFunctionUrl();
     backendStorageBucket.grantReadWrite(lambdaC2pa);
+    uiStorageBucket.grantReadWrite(lambdaC2pa);
     certificate.grantRead(lambdaC2pa);
     private_key.grantRead(lambdaC2pa);
 

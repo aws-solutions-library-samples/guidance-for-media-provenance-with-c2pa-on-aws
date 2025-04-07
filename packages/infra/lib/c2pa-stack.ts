@@ -57,6 +57,7 @@ export class C2paStack extends cdk.Stack {
 
     const { fnUrl } = new Lambda(this, "C2PA Lambda", {
       backendStorageBucket: storageStack.backendStorageBucket,
+      uiStorageBucket: storageStack.uiStorageBucket,
       vpc: networkStack.vpc,
       certificate,
       private_key,

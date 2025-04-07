@@ -48,8 +48,26 @@ def run_c2pa_command_for_fmp4(init_file, fragments_glob, output_dir, manifest_fi
     os.makedirs(output_dir, exist_ok=True)
 
     # Build command exactly as specified
+    # Use full path to c2patool to avoid PATH issues
+    c2patool_path = "/usr/local/bin/c2patool"
+    
+    # Check if c2patool exists and has execute permissions
+    if not os.path.exists(c2patool_path):
+        print(f"ERROR: {c2patool_path} does not exist")
+        return False, f"{c2patool_path} does not exist"
+    
+    if not os.access(c2patool_path, os.X_OK):
+        print(f"ERROR: {c2patool_path} is not executable")
+        # Try to fix permissions
+        try:
+            os.chmod(c2patool_path, 0o755)
+            print(f"Fixed permissions for {c2patool_path}")
+        except Exception as e:
+            print(f"Failed to fix permissions: {str(e)}")
+            return False, f"Failed to fix permissions for {c2patool_path}: {str(e)}"
+    
     command = [
-        "c2patool",
+        c2patool_path,
         "-m",
         manifest_file,
         "-o",

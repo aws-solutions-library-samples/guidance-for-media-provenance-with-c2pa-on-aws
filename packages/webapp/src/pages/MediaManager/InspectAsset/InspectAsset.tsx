@@ -21,12 +21,14 @@ import { useState } from "react";
 
 export const InspectAsset = () => {
   const [searchParams] = useSearchParams();
-  const assetFile = useGetAssetAsFileObject(
-    `assets/${searchParams.get("asset")}`
-  );
-  const fileProperties = useGetFileProperties(
-    `assets/${searchParams.get("asset")}`
-  );
+  const assetPath = searchParams.get("asset") || "";
+  
+  // Add 'complete/' prefix to the asset path for API calls
+  // The asset path from URL is expected to be in the format 'assets/filename.ext'
+  const formattedAssetPath = `complete/${assetPath}`;
+  
+  const assetFile = useGetAssetAsFileObject(formattedAssetPath);
+  const fileProperties = useGetFileProperties(formattedAssetPath);
 
   return (
     <ContentLayout>

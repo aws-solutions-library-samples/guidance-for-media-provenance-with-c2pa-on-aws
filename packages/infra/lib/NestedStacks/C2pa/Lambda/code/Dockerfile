@@ -41,11 +41,16 @@ COPY --from=builder /python ${LAMBDA_TASK_ROOT}
 COPY c2patool-v0.9.12-linux.tar.gz ${LAMBDA_TASK_ROOT}/
 RUN microdnf install -y --setopt=install_weak_deps=0 --best \
     tar \
-    gzip && \
-    tar xf ${LAMBDA_TASK_ROOT}/c2patool-v0.9.12-linux.tar.gz && \
-    mv c2patool /usr/local/bin/ && \
+    gzip \
+    findutils && \
+    mkdir -p /tmp/c2patool-extract && \
+    tar -xvf ${LAMBDA_TASK_ROOT}/c2patool-v0.9.12-linux.tar.gz -C /tmp/c2patool-extract && \
+    ls -la /tmp/c2patool-extract && \
+    # Based on the extraction output, we can see the path is c2patool/c2patool
+    cp /tmp/c2patool-extract/c2patool/c2patool /usr/local/bin/ && \
     rm ${LAMBDA_TASK_ROOT}/c2patool-v0.9.12-linux.tar.gz && \
-    chmod +x /usr/local/bin/c2patool && \
+    chmod 755 /usr/local/bin/c2patool && \
+    ls -la /usr/local/bin/c2patool && \
     microdnf clean all
 
 # Copy lambda function code
