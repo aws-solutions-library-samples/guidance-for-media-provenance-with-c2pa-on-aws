@@ -95,7 +95,9 @@ export const FMP4Library = () => {
                     id: "name",
                     header: "Name",
                     cell: () => (
-                      <Link to ='#' target="_blank">{"Fragment Output Location"}</Link>
+                      <Link to="#" target="_blank">
+                        {"Fragment Output Location"}
+                      </Link>
                     ),
                   },
                 ]}
