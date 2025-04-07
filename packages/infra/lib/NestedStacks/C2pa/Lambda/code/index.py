@@ -151,7 +151,7 @@ class SignFmp4Event(BaseModel):
 
 
 @app.post("/sign_fmp4")
-async def sign_fmp4(request: SignFmp4Event):
+def sign_fmp4(request: SignFmp4Event):
     with tempfile.TemporaryDirectory() as temp_dir:
         init_file_path = os.path.join(temp_dir, "init.mp4")
         logger.info(f"Downloading init file: {request.init_file}")
@@ -281,8 +281,27 @@ def read_file(readFileEvent: ReadFileEvent):
 )
 @tracer.capture_lambda_handler
 def handler(event: dict, context: LambdaContext) -> dict:
+    # Log the event for debugging
+    logger.info("Lambda handler invoked")
+    logger.info(f"Event: {json.dumps(event)}")
+    
+    # Clean up temporary files
     files = glob.glob("/tmp/*")
     for file in files:
         os.remove(file)
 
-    return app.resolve(event, context)
+    try:
+        # Resolve the request using the Lambda Function URL resolver
+        return app.resolve(event, context)
+    except ServiceError as e:
+        logger.error(f"Service error: {e.message}")
+        return {
+            "statusCode": e.status_code,
+            "body": json.dumps({"error": e.message})
+        }
+    except Exception as e:
+        logger.exception("Unhandled exception")
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"error": str(e)})
+        }

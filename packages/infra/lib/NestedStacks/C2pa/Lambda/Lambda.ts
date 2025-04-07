@@ -37,7 +37,9 @@ export class Lambda extends Construct {
     const c2paLambdaRuntime = lambda.Runtime.PYTHON_3_13;
 
     const lambdaC2pa = new lambda.DockerImageFunction(this, "C2PA Lambda", {
-      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, "code")),
+      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, "code"), {
+        platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
+      }),
       functionName: `${stack.stackName}-c2pa-lambda`,
       timeout: cdk.Duration.minutes(1),
       vpc,

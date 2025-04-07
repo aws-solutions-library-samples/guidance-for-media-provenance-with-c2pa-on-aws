@@ -52,7 +52,14 @@ RUN microdnf install -y --setopt=install_weak_deps=0 --best \
 COPY index.py ${LAMBDA_TASK_ROOT}/
 COPY utils.py ${LAMBDA_TASK_ROOT}/
 
-# Make sure the handler function is accessible
-ENV PYTHONPATH="${LAMBDA_TASK_ROOT}"
+# The AWS Lambda base image already has the runtime interface client
+# We just need to ensure our code is in the right location and the handler is set correctly
 
+# The AWS Lambda Python base image looks for the handler at /var/task/[handler_file].[handler_function]
+# So we need to make sure our handler is at /var/task/index.py with a function named handler
+
+# Set the Python path to include our code
+ENV PYTHONPATH="/var/task"
+
+# Set the handler
 CMD [ "index.handler" ]
