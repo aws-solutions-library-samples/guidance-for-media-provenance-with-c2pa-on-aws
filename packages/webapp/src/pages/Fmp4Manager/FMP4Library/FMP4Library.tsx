@@ -9,7 +9,7 @@ import {
 } from "@cloudscape-design/components";
 
 import { useListAssets } from "../../../api/api";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export const FMP4Library = () => {
   const navigate = useNavigate();

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import "https://vjs.zencdn.net/8.3.0/video.js";
 import "https://cdn.dashjs.org/v4.7.2/dash.all.min.js";
 import "../c2pa/c2pa-player.css";
@@ -33,6 +34,7 @@ export const FMP4Inspect = () => {
     autoPlay = false
   ) => {
     console.log("initializeDash", url, options, autoPlay);
+    // @ts-ignore
     const player = dashjs.MediaPlayer().create();
     const playerOptions = {
       fluid: true,
@@ -51,7 +53,9 @@ export const FMP4Inspect = () => {
     /* Create videojs player and c2pa player */
     /* Responsible for UI and playback control */
     const video = document.querySelector(`#${videoId}`) as HTMLVideoElement;
+    // @ts-expect-error
     const videoJsPlayer = videojs(videoId, playerOptions, () => {
+      // @ts-expect-error
       videojs.log("onPlayerReady");
     });
 
