@@ -55,13 +55,8 @@ class SignFileEvent(BaseModel):
 
 @app.post("/sign_file")
 async def sign_file(signFileEvent: SignFileEvent):
-    print(signFileEvent)
-
-    # Create the working directory if it doesn't exist
-    print(f"Creating c2pa folder -> {os.listdir()}")
     directory_path = Path("c2pa")
     directory_path.mkdir(parents=True, exist_ok=True)
-    print(f"c2pa folder created -> {os.listdir()}")
 
     new_title = signFileEvent.new_title
     asset_url = signFileEvent.asset_url
