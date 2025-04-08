@@ -34,23 +34,6 @@ export type CreateFMP4ManifestMutation = {
   createFMP4Manifest?: string | null,
 };
 
-export type ConvertMP4ToFMP4 = {
-  computeType?: string | null,
-  newTitle?: string | null,
-  mp4FileS3?: string | null,
-  mp4FileName?: string | null,
-  mp4FileType?: string | null,
-  mp4FileBase64?: string | null,
-};
-
-export type ConvertMP4ToFMP4MutationVariables = {
-  input: ConvertMP4ToFMP4,
-};
-
-export type ConvertMP4ToFMP4Mutation = {
-  convertMP4ToFMP4?: string | null,
-};
-
 export type ReadFileQueryVariables = {
 };
 

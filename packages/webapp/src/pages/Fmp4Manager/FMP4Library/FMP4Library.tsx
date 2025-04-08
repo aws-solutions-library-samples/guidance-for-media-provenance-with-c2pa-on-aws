@@ -94,11 +94,8 @@ export const FMP4Library = () => {
                   {
                     id: "name",
                     header: "Name",
-                    cell: () => (
-                      <Link to="#" target="_blank">
-                        {"Fragment Output Location"}
-                      </Link>
-                    ),
+                    cell: () =>
+                      "Go to the C2PA Backend Bucket to see processed fragments",
                   },
                 ]}
                 empty={

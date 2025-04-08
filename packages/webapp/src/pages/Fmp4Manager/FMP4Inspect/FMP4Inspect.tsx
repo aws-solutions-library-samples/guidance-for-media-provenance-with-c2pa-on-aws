@@ -2,13 +2,13 @@ import "https://vjs.zencdn.net/8.3.0/video.js";
 import "https://cdn.dashjs.org/v4.7.2/dash.all.min.js";
 import "../c2pa/c2pa-player.css";
 
-import { useEffect, useRef, useState } from "react";
-import { c2pa_init } from "../../../c2pa/plugin-dash/c2pa-dash-plugin.js";
-import { C2PAPlayer } from "../../../c2pa/C2paPlayer/main.js";
 import { Button, Container, Header } from "@cloudscape-design/components";
+import { c2pa_init } from "../c2pa/plugin-dash/c2pa-dash-plugin.js";
+import { C2PAPlayer } from "../c2pa/C2paPlayer/main.js";
+import { useEffect, useRef, useState } from "react";
 
 export const FMP4Inspect = () => {
-  const [_player, setPlayer] = useState<any>(null);
+  const [, setPlayer] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const url = "https://cc-assets.netlify.app/video/fmp4-samples/boat.mpd";

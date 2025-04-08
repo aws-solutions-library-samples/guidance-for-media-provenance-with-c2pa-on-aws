@@ -3,39 +3,51 @@ export function getTimelineFunctions() {
   let progressSegments = [];
 
   let handleOnSeeked = function (time) {
-    console.log('[C2PA] Player seeked: ', time);
+    console.log("[C2PA] Player seeked: ", time);
     const seeking = false;
     return seeking;
   };
 
-  let handleOnSeeking = function (time , playbackStarted , lastPlaybackTime , isMonolithic , c2paControlBar , videoPlayer) {
-    console.log('[C2PA] Player seeking: ', time);
+  let handleOnSeeking = function (
+    time,
+    playbackStarted,
+    lastPlaybackTime,
+    isMonolithic,
+    c2paControlBar,
+    videoPlayer
+  ) {
+    console.log("[C2PA] Player seeking: ", time);
     let seeking = true;
 
     if (time === 0) {
-        console.log('[C2PA] Player resetting');
-        progressSegments.forEach((segment) => {
-            segment.remove();
-        });
+      console.log("[C2PA] Player resetting");
+      progressSegments.forEach((segment) => {
+        segment.remove();
+      });
 
-        progressSegments = [];
-        const resetPlaybackTime = 0.0;
-        seeking = false;
+      progressSegments = [];
+      const resetPlaybackTime = 0.0;
+      seeking = false;
 
-        updateC2PAButton(videoPlayer);
-        return [seeking , resetPlaybackTime];
+      updateC2PAButton(videoPlayer);
+      return [seeking, resetPlaybackTime];
     }
 
     //A seek event is triggered at the beginning of the playback, so we ignore it
     if (playbackStarted && time > 0 && progressSegments.length > 0) {
-        handleSeekC2PATimeline(time, isMonolithic, c2paControlBar, videoPlayer);
+      handleSeekC2PATimeline(time, isMonolithic, c2paControlBar, videoPlayer);
     }
 
-    return [seeking , lastPlaybackTime];
-};
+    return [seeking, lastPlaybackTime];
+  };
 
-let handleSeekC2PATimeline = function (seekTime, isMonolithic, c2paControlBar, videoPlayer) {
-    console.log('[C2PA] Handle seek to: ', seekTime);
+  let handleSeekC2PATimeline = function (
+    seekTime,
+    isMonolithic,
+    c2paControlBar,
+    videoPlayer
+  ) {
+    console.log("[C2PA] Handle seek to: ", seekTime);
     //Remove segments that are not active anymore
     progressSegments = progressSegments.filter((segment) => {
       const segmentStartTime = parseFloat(segment.dataset.startTime);
@@ -53,62 +65,70 @@ let handleSeekC2PATimeline = function (seekTime, isMonolithic, c2paControlBar, v
 
     const lastSegment = progressSegments[progressSegments.length - 1];
     if (lastSegment) {
-        if (lastSegment.dataset.endTime > seekTime) {
-            //Adjust end time of last segment if seek time is lower than the previous end time
-            lastSegment.dataset.endTime = seekTime;
-        } else {
-            if (!isMonolithic && lastSegment.dataset.endTime != seekTime && lastSegment.dataset.verificationStatus != "unknown") {
-                //In the streaming case, if there was a jump ahead in the timeline, we do not know the validation status
-                //Therefore, we create an unkwown segment and add it to the timeline
-                const segment = createTimelineSegment(lastSegment.dataset.endTime, seekTime, 'unknown');
-                c2paControlBar.el().appendChild(segment);
-                progressSegments.push(segment);
-            }
+      if (lastSegment.dataset.endTime > seekTime) {
+        //Adjust end time of last segment if seek time is lower than the previous end time
+        lastSegment.dataset.endTime = seekTime;
+      } else {
+        if (
+          !isMonolithic &&
+          lastSegment.dataset.endTime != seekTime &&
+          lastSegment.dataset.verificationStatus != "unknown"
+        ) {
+          //In the streaming case, if there was a jump ahead in the timeline, we do not know the validation status
+          //Therefore, we create an unkwown segment and add it to the timeline
+          const segment = createTimelineSegment(
+            lastSegment.dataset.endTime,
+            seekTime,
+            "unknown"
+          );
+          c2paControlBar.el().appendChild(segment);
+          progressSegments.push(segment);
         }
+      }
     }
 
     updateC2PATimeline(seekTime, videoPlayer, c2paControlBar);
-};
-    //Create a new progress segment to be added to the c2pa progress bar
-let createTimelineSegment = function (
+  };
+  //Create a new progress segment to be added to the c2pa progress bar
+  let createTimelineSegment = function (
     segmentStartTime,
     segmentEndTime,
     verificationStatus,
-    isManifestInvalid,
+    isManifestInvalid
   ) {
-    const segment = document.createElement('div');
-    segment.className = 'seekbar-play-c2pa';
+    const segment = document.createElement("div");
+    segment.className = "seekbar-play-c2pa";
     //Width is initially set to zero, and increased directly as playback progresses
-    segment.style.width = '0%';
+    segment.style.width = "0%";
     segment.dataset.startTime = segmentStartTime;
     segment.dataset.endTime = segmentEndTime;
     segment.dataset.verificationStatus = verificationStatus;
 
     if (isManifestInvalid) {
       segment.style.backgroundColor = getComputedStyle(document.documentElement)
-        .getPropertyValue('--c2pa-failed')
+        .getPropertyValue("--c2pa-failed")
         .trim();
     } else {
-      if (verificationStatus == 'true') {
+      if (verificationStatus == "true") {
         //c2pa validation passed
         segment.style.backgroundColor = getComputedStyle(
-          document.documentElement,
+          document.documentElement
         )
-          .getPropertyValue('--c2pa-passed')
+          .getPropertyValue("--c2pa-passed")
           .trim();
-      } else if (verificationStatus == 'false') {
+      } else if (verificationStatus == "false") {
         //c2pa validation failed
         segment.style.backgroundColor = getComputedStyle(
-          document.documentElement,
+          document.documentElement
         )
-          .getPropertyValue('--c2pa-failed')
+          .getPropertyValue("--c2pa-failed")
           .trim();
       } else {
         //c2pa validation not available or unkwown
         segment.style.backgroundColor = getComputedStyle(
-          document.documentElement,
+          document.documentElement
         )
-          .getPropertyValue('--c2pa-unknown')
+          .getPropertyValue("--c2pa-unknown")
           .trim();
       }
     }
@@ -116,12 +136,12 @@ let createTimelineSegment = function (
     return segment;
   };
 
-  let updateC2PATimeline = function (currentTime , videoPlayer, c2paControlBar) {
-    console.log('[C2PA] Updating play bar');
+  let updateC2PATimeline = function (currentTime, videoPlayer, c2paControlBar) {
+    console.log("[C2PA] Updating play bar");
 
     //If no new segments have been added to the timeline, we add a new one with unknown status
     if (progressSegments.length === 0) {
-        handleC2PAValidation('unknown', currentTime , c2paControlBar);
+      handleC2PAValidation("unknown", currentTime, c2paControlBar);
     }
 
     let numSegments = progressSegments.length;
@@ -131,7 +151,7 @@ let createTimelineSegment = function (
     //Update the color of the progress bar tooltip to match with the that of the last segment
     const playProgressControl = videoPlayer
       .el()
-      .querySelector('.vjs-play-progress');
+      .querySelector(".vjs-play-progress");
     playProgressControl.style.backgroundColor =
       lastSegment.style.backgroundColor;
     playProgressControl.style.color = lastSegment.style.backgroundColor;
@@ -153,17 +173,17 @@ let createTimelineSegment = function (
       }
 
       console.log(
-        '[C2PA] Segment progress percentage: ',
-        segmentProgressPercentage,
+        "[C2PA] Segment progress percentage: ",
+        segmentProgressPercentage
       );
-      segment.style.width = segmentProgressPercentage + '%';
+      segment.style.width = segmentProgressPercentage + "%";
 
       //Set the z-index so that segments appear in order of creation
       segment.style.zIndex = numSegments;
       numSegments--;
-      console.log('[C2PA] ----');
+      console.log("[C2PA] ----");
 
-      if (segment.dataset.verificationStatus == 'false') {
+      if (segment.dataset.verificationStatus == "false") {
         isVideoSegmentInvalid = true;
       }
     });
@@ -174,12 +194,12 @@ let createTimelineSegment = function (
   let updateC2PAButton = function (videoPlayer, isVideoSegmentInvalid = false) {
     const c2paInvalidButton = videoPlayer
       .el()
-      .querySelector('.c2pa-menu-button button');
+      .querySelector(".c2pa-menu-button button");
     if (c2paInvalidButton) {
       if (isVideoSegmentInvalid) {
-        c2paInvalidButton.classList.add('c2pa-menu-button-invalid');
+        c2paInvalidButton.classList.add("c2pa-menu-button-invalid");
       } else {
-        c2paInvalidButton.classList.remove('c2pa-menu-button-invalid');
+        c2paInvalidButton.classList.remove("c2pa-menu-button-invalid");
       }
     }
   };
@@ -188,8 +208,8 @@ let createTimelineSegment = function (
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.round(seconds % 60);
 
-    const formattedMinutes = String(minutes).padStart(2, '0');
-    const formattedSeconds = String(remainingSeconds).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, "0");
+    const formattedSeconds = String(remainingSeconds).padStart(2, "0");
 
     return `${formattedMinutes}:${formattedSeconds}`;
   };
@@ -197,12 +217,12 @@ let createTimelineSegment = function (
   let handleC2PAValidation = function (
     verificationStatusBool,
     currentTime,
-    c2paControlBar,
+    c2paControlBar
   ) {
     //Convert verification status to string since this value is saved in the segment dataset
     //If variable is not a boolean, we set the status to unknown
-    let verificationStatus = 'unknown';
-    if (typeof verificationStatusBool === 'boolean')
+    let verificationStatus = "unknown";
+    if (typeof verificationStatusBool === "boolean")
       verificationStatus = verificationStatusBool.toString();
 
     //If no segments have been added to the timeline, or if the validation status has changed with respect to the last segment
@@ -212,7 +232,7 @@ let createTimelineSegment = function (
       progressSegments[progressSegments.length - 1].dataset
         .verificationStatus != verificationStatus
     ) {
-      console.log('[C2PA] New validation status: ', verificationStatus);
+      console.log("[C2PA] New validation status: ", verificationStatus);
 
       //Update the end time of the last segment
       if (progressSegments.length > 0) {
@@ -224,7 +244,7 @@ let createTimelineSegment = function (
       const segment = createTimelineSegment(
         currentTime,
         currentTime,
-        verificationStatus,
+        verificationStatus
       );
       c2paControlBar.el().appendChild(segment);
       progressSegments.push(segment);
@@ -240,22 +260,22 @@ let createTimelineSegment = function (
       //the whole video is considered compromised
       if (
         progressSegments.length > 0 &&
-        progressSegments[0].dataset.verificationStatus === 'false'
+        progressSegments[0].dataset.verificationStatus === "false"
       ) {
         const startTime = 0.0;
         const endTime = videoPlayer.duration();
         compromisedRegions.push(
-          formatTime(startTime) + '-' + formatTime(endTime),
+          formatTime(startTime) + "-" + formatTime(endTime)
         );
       }
     } else {
       //In the streaming case, we get the compromised regions from the segments that have failed the c2pa validation
       progressSegments.forEach((segment) => {
-        if (segment.dataset.verificationStatus === 'false') {
+        if (segment.dataset.verificationStatus === "false") {
           const startTime = parseFloat(segment.dataset.startTime);
           const endTime = parseFloat(segment.dataset.endTime);
           compromisedRegions.push(
-            formatTime(startTime) + '-' + formatTime(endTime),
+            formatTime(startTime) + "-" + formatTime(endTime)
           );
         }
       });

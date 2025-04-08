@@ -8,14 +8,26 @@ import {
   SegmentedControl,
 } from "@cloudscape-design/components";
 
-import { Controller } from "react-hook-form";
-import { useListAssets } from "../../../api/api";
+import { Control, Controller } from "react-hook-form";
+import { IUseCreateNewFMP4Manifest, useListAssets } from "../../../api/api";
+import { UseMutationResult } from "@tanstack/react-query";
+import { FormValues } from "./FMP4Sign";
 
 interface IStep2 {
-  control: any;
+  control: Control<FormValues, any>;
   folderSelection: string;
+  createNewFMP4Manifest: UseMutationResult<
+    any,
+    Error,
+    IUseCreateNewFMP4Manifest,
+    unknown
+  >;
 }
-export const Step2 = ({ control, folderSelection }: IStep2) => {
+export const Step2 = ({
+  control,
+  folderSelection,
+  createNewFMP4Manifest,
+}: IStep2) => {
   const { data } = useListAssets(folderSelection);
 
   return (
@@ -35,6 +47,7 @@ export const Step2 = ({ control, folderSelection }: IStep2) => {
             name="newTitle"
             render={({ field: { onChange, value } }) => (
               <Input
+                disabled={createNewFMP4Manifest.isPending}
                 value={value}
                 onChange={(event) => onChange(event.detail.value)}
               />
@@ -52,6 +65,7 @@ export const Step2 = ({ control, folderSelection }: IStep2) => {
             rules={{ required: "Init file is required" }}
             render={({ field }) => (
               <Select
+                disabled={createNewFMP4Manifest.isPending}
                 selectedOption={
                   field.value
                     ? {
@@ -88,6 +102,7 @@ export const Step2 = ({ control, folderSelection }: IStep2) => {
             render={({ field }) => (
               <Input
                 {...field}
+                disabled={createNewFMP4Manifest.isPending}
                 onChange={({ detail }) => field.onChange(detail.value)}
                 placeholder="fragment*.m4s"
               />
@@ -102,6 +117,7 @@ export const Step2 = ({ control, folderSelection }: IStep2) => {
             rules={{ required: "Manifest file is required" }}
             render={({ field }) => (
               <Select
+                disabled={createNewFMP4Manifest.isPending}
                 selectedOption={
                   field.value
                     ? {

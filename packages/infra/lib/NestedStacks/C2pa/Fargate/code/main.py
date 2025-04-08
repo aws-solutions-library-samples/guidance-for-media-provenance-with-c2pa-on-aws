@@ -253,4 +253,60 @@ async def sign_fmp4(request: SignFmp4Event):
         #     },
         # )
 
-        return {"manifest": "manifest"}
+        return {"saved_location": f"s3://{output_bucket}/fragments/processed/{request.new_title}/"}
+
+########################################################################
+########################## /read_c2pa ##################################
+########################################################################
+class ReadFileEvent(BaseModel):
+    asset_url: str
+    return_type: str
+
+@app.post("/read_file")
+async def read_file(readFileEvent: ReadFileEvent):
+    print(readFileEvent)
+
+    # Create the working directory if it doesn't exist
+    print(f"Creating c2pa folder -> {os.listdir()}")
+    directory_path = Path("c2pa")
+    directory_path.mkdir(parents=True, exist_ok=True)
+    print(f"c2pa folder created -> {os.listdir()}")
+
+    asset_url = readFileEvent.asset_url
+    return_type = readFileEvent.return_type
+
+    filename = urlparse(asset_url).path.split("/").pop()
+    filename_no_extension, extension = splitext(filename)
+
+    reader = c2pa.Reader(extension[1:], io.BytesIO(request.urlopen(asset_url).read()))
+    match return_type:
+        case "json":
+            return json.loads(reader.json())
+        case "presigned_url":
+            with open("c2pa/manifest.json", "w") as f:
+                json.dump(json.loads(reader.json()), f, indent=2)
+                print(f"Downloading asset_url")
+
+            # Upload the manifest json
+            print(f"{datetime.now()}: Uploading manifest json...")
+            s3.upload_file(
+                "c2pa/manifest.json",
+                output_bucket,
+                f"{filename_no_extension}/read_c2pa.json",
+            )
+            print("Manifest upload complete")
+            presigned_url = s3.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": output_bucket,
+                    "Key": f"{filename_no_extension}/read_c2pa.json",
+                },
+            )
+            print(f"Presigned URL created")
+
+            return {"presigned_url": presigned_url}
+        case _:
+            raise HTTPException(
+                status_code=status.HTTP_412_PRECONDITION_FAILED,
+                detail='return_type is invalid. Must be either "json" or "presigned_url"',
+            )
