@@ -7,22 +7,18 @@ import {
   Button,
   SelectProps,
   StatusIndicator,
-  Spinner
 } from "@cloudscape-design/components";
 
 import { GetPropertiesWithPathOutput } from "aws-amplify/storage";
 import { StorageImage } from "@aws-amplify/ui-react-storage";
 import { C2paReadResult, generateVerifyUrl } from "c2pa";
-import { useGetAssetMutate,  useGetAsset} from "../../../../api/api";
+import { useGetAssetMutate } from "../../../../api/api";
 import { useSearchParams } from "react-router-dom";
 import { Dispatch, SetStateAction } from "react";
 import { ManifestInfo } from "./ManifestInfo";
-//import { init_video } from "./DashVideo";
-import DASHReact  from "./DASHReact";
 
 import prettyBytes from "pretty-bytes";
 
- 
 interface IOverview {
   provenance?: C2paReadResult;
   assetRefetch: () => Promise<unknown>;
@@ -30,7 +26,6 @@ interface IOverview {
   setActiveTabId: Dispatch<SetStateAction<string>>;
   setSelectedOption: Dispatch<SetStateAction<SelectProps.Option>>;
 }
-
 
 export const Overview = ({
   provenance,
@@ -41,9 +36,7 @@ export const Overview = ({
   const [searchParams] = useSearchParams();
 
   const { mutateAsync } = useGetAssetMutate();
-  
-  // Get the asset URL for use in the component
-  const { data: _assetUrlData, isLoading: assetUrlLoading } = useGetAsset(searchParams.get("asset") || "");
+
   return (
     <SpaceBetween size="s">
       <Container header={<Header variant="h3">Source</Header>}>
@@ -64,7 +57,7 @@ export const Overview = ({
             },
             {
               label: "Last Modified",
-              value: fileProperties?.toString(),
+              value: fileProperties?.lastModified?.toString(),
             },
           ]}
         />
@@ -80,7 +73,7 @@ export const Overview = ({
                 iconName={"external"}
                 onClick={async () => {
                   const { url } = await mutateAsync({
-                    path: `assets/${searchParams.get("asset")}`,
+                    path: `complete/assets/${searchParams.get("asset")}`,
                   });
                   if (url) window.open(generateVerifyUrl(url.href));
                 }}
@@ -94,25 +87,11 @@ export const Overview = ({
         }
       >
         <SpaceBetween alignItems="center" size={"xxs"}>
-
-          {searchParams.get("asset")?.endsWith(".mpd") ? (
-            assetUrlLoading ? (
-              <Spinner />
-            ) : (
-              <DASHReact
-                url='https://cc-assets.netlify.app/video/fmp4-samples/boat.mpd'
-                controls={true}
-                autoPlay={false}
-                className="video-js"
-              />
-            )
-          ) : (
-            <StorageImage
-              height={"30vh"}
-              alt={searchParams.get("asset") ?? ""}
-              path={`assets/${searchParams.get("asset")}`}
-            />
-          )}
+          <StorageImage
+            height={"30vh"}
+            alt={searchParams.get("asset") ?? ""}
+            path={`complete/assets/${searchParams.get("asset")}`}
+          />
         </SpaceBetween>
       </Container>
 

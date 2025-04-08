@@ -3,7 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as python from "@aws-cdk/aws-lambda-python-alpha";
+import * as ecrAssets from "aws-cdk-lib/aws-ecr-assets";
 import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 
 import * as path from "path";
@@ -25,7 +25,13 @@ export class Lambda extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    { certificate, private_key, backendStorageBucket, uiStorageBucket, vpc }: LambdaProps
+    {
+      certificate,
+      private_key,
+      backendStorageBucket,
+      uiStorageBucket,
+      vpc,
+    }: LambdaProps
   ) {
     super(scope, id);
 
@@ -38,11 +44,14 @@ export class Lambda extends Construct {
     const c2paLambdaRuntime = lambda.Runtime.PYTHON_3_13;
 
     const lambdaC2pa = new lambda.DockerImageFunction(this, "C2PA Lambda", {
-      code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, "code"), {
-        platform: cdk.aws_ecr_assets.Platform.LINUX_AMD64,
-      }),
+      code: lambda.DockerImageCode.fromImageAsset(
+        path.join(__dirname, "code"),
+        {
+          platform: ecrAssets.Platform.LINUX_AMD64,
+        }
+      ),
       functionName: `${stack.stackName}-c2pa-lambda`,
-      timeout: cdk.Duration.minutes(1),
+      timeout: cdk.Duration.minutes(5),
       vpc,
       environment: {
         output_bucket: backendStorageBucket.bucketName,

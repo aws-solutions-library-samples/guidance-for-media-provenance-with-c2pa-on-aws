@@ -14,19 +14,9 @@ input CreateFMP4Manifest {
   manifestFile: String
 }
 
-input ConvertMP4ToFMP4 {
-  computeType: String
-  newTitle: String
-  mp4FileS3: String
-  mp4FileName: String
-  mp4FileType: String
-  mp4FileBase64: String
-}
-
 type Mutation {
   createManifest(input: CreateManifest!): AWSJSON
   createFMP4Manifest(input: CreateFMP4Manifest!): AWSJSON
-  convertMP4ToFMP4(input: ConvertMP4ToFMP4!): AWSJSON
 }
 
 type Query {

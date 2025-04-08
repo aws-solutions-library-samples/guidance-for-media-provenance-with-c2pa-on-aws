@@ -37,18 +37,6 @@ export const Library = () => {
             actions={
               <SpaceBetween size="s" direction="horizontal">
                 <Button
-                  disabled={selectedItems.length !== 1}
-                  onClick={() =>
-                    navigate(
-                      `/media-manager/edit-asset?asset=${selectedItems[0].path
-                        .split("/")
-                        .pop()}`
-                    )
-                  }
-                >
-                  Edit
-                </Button>
-                <Button
                   disabled={!selectedItems.length}
                   loading={isPending}
                   onClick={() =>
@@ -77,7 +65,9 @@ export const Library = () => {
             header: "Name",
             cell: (item) => (
               <Link
-                to={`/media-manager/inspect-asset?asset=${(item.path.split("/")).slice(1).join('/')}`}
+                to={`/media-manager/inspect-asset?asset=${item.path
+                  .split("/")
+                  .pop()}`}
               >
                 {item.path.split("/").pop()}
               </Link>

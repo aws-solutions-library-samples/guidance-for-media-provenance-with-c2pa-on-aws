@@ -1,5 +1,4 @@
 import ReactDOM from "react-dom/client";
-import React from "react";
 
 import { InspectAsset } from "./pages/MediaManager/InspectAsset/InspectAsset.tsx";
 import { UploadAsset } from "./pages/MediaManager/UploadAsset/UploadAsset.tsx";
@@ -85,25 +84,23 @@ const router = ({ signOut, user }: IAuthenticator) => {
 };
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
-  <React.StrictMode>
-    <Authenticator hideSignUp variation="modal">
-      {({ signOut, user }) => {
-        return (
-          <C2paProvider
-            config={{
-              // Use CDN URLs instead of local imports
-              workerSrc:
-                "https://cdn.jsdelivr.net/npm/c2pa@latest/dist/c2pa.worker.min.js",
-              wasmSrc:
-                "https://cdn.jsdelivr.net/npm/c2pa@latest/dist/assets/wasm/toolkit_bg.wasm",
-            }}
-          >
-            <QueryClientProvider client={queryClient}>
-              <RouterProvider router={router({ signOut, user })} />
-            </QueryClientProvider>
-          </C2paProvider>
-        );
-      }}
-    </Authenticator>
-  </React.StrictMode>
+  <Authenticator hideSignUp variation="modal">
+    {({ signOut, user }) => {
+      return (
+        <C2paProvider
+          config={{
+            // Use CDN URLs instead of local imports
+            workerSrc:
+              "https://cdn.jsdelivr.net/npm/c2pa@0.28.4/dist/c2pa.worker.min.js",
+            wasmSrc:
+              "https://cdn.jsdelivr.net/npm/c2pa@0.28.4/dist/assets/wasm/toolkit_bg.wasm",
+          }}
+        >
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router({ signOut, user })} />
+          </QueryClientProvider>
+        </C2paProvider>
+      );
+    }}
+  </Authenticator>
 );

@@ -6,6 +6,7 @@ import {
   ContentLayout,
   Select,
   Button,
+  Alert,
 } from "@cloudscape-design/components";
 
 import { useListAssets, useCreateNewFMP4Manifest } from "../../../api/api";
@@ -70,6 +71,7 @@ export const FMP4Sign = () => {
                   description="Select the folder you wish to operate on"
                 >
                   <Select
+                    disabled={createNewFMP4Manifest.isPending}
                     selectedOption={
                       field.value
                         ? {
@@ -93,7 +95,25 @@ export const FMP4Sign = () => {
             />
           </Container>
           {folderSelection && (
-            <Step2 control={control} folderSelection={folderSelection} />
+            <Step2
+              control={control}
+              folderSelection={folderSelection}
+              createNewFMP4Manifest={createNewFMP4Manifest}
+            />
+          )}
+          {createNewFMP4Manifest.isSuccess && (
+            <Alert type="success">
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(createNewFMP4Manifest.data, null, 2)}
+              </pre>
+            </Alert>
+          )}
+          {createNewFMP4Manifest.isError && (
+            <Alert type="error">
+              <pre style={{ whiteSpace: "pre-wrap" }}>
+                {JSON.stringify(createNewFMP4Manifest.error, null, 2)}
+              </pre>
+            </Alert>
           )}
           <Button variant="primary" loading={createNewFMP4Manifest.isPending}>
             Submit

@@ -15,8 +15,8 @@ from utils import (
     run_c2pa_command_for_fmp4,
 )
 
-from typing import List, Optional, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from typing import List
 
 from aws_lambda_powertools import Logger, Tracer
 from aws_lambda_powertools.logging import correlation_paths
@@ -45,7 +45,6 @@ class SignFileEvent(BaseModel):
     asset_url: str
     assertions_json_url: str
     ingredients_url: List[str] | None = None
-
 
 @app.post("/sign_file")
 def sign_file(signFileEvent: SignFileEvent):
@@ -151,7 +150,6 @@ class SignFmp4Event(BaseModel):
     init_file: str
     fragments_pattern: str
     manifest_file: str
-
 
 @app.post("/sign_fmp4")
 def sign_fmp4(request: SignFmp4Event):
@@ -352,13 +350,12 @@ def sign_fmp4(request: SignFmp4Event):
         #     },
         # )
 
-        return {"manifest": "manifest"}
+        return {"saved_location": f"s3://{output_bucket}/fragments/processed/{request.new_title}/"}
 
 
 class ReadFileEvent(BaseModel):
     asset_url: str
     return_type: str
-
 
 @app.post("/read_file")
 def read_file(readFileEvent: ReadFileEvent):

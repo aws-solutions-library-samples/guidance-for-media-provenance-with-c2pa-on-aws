@@ -109,7 +109,7 @@ const createManifest = async ({
         })
       );
 
-      return JSON.stringify({ manifest: `complete/assets/${newTitle}` });
+      return { manifest: `complete/assets/${newTitle}` };
     case "fargate":
       const fargateUrl = new URL(`http://${process.env.FargateALB}`);
       const fargatePayload = {
@@ -150,7 +150,7 @@ const createManifest = async ({
         })
       );
 
-      return JSON.stringify({ manifest: `complete/assets/${newTitle}` });
+      return { manifest: `complete/assets/${newTitle}` };
     default:
       throw new Error(`Invalid compute type: ${computeType}`);
   }
@@ -162,15 +162,6 @@ interface ICreatefMP4Manifest {
   initFile: string;
   fragmentsPattern: string;
   manifestFile: string;
-}
-
-interface IConvertMP4ToFMP4 {
-  newTitle: string;
-  computeType: string;
-  mp4FileS3?: string;
-  mp4FileName?: string;
-  mp4FileType?: string;
-  mp4FileBase64?: string;
 }
 const createFmp4Manifest = async ({
   computeType,
@@ -216,31 +207,11 @@ const createFmp4Manifest = async ({
 
       // Get the response from the Lambda function
       const response = await signfileResponse.json();
-      
+
       // Log the response for debugging
       console.log("Lambda response:", JSON.stringify(response, null, 2));
-      
-      // The Lambda function now returns more information
-      const { manifest, manifest_key, files } = response;
-      
-      try {
-        // Try to fetch the manifest URL to verify it works
-        const manifestResponse = await fetch(manifest);
-        
-        if (!manifestResponse.ok) {
-          throw new Error(`Failed to fetch manifest: ${manifestResponse.statusText}`);
-        }
-        
-        // The frontend expects a JSON string, not an object
-        // We need to stringify the result
-        return JSON.stringify({ 
-          manifest: manifest_key,
-          files: files || []
-        });
-      } catch (error: any) {
-        console.error("Error fetching manifest:", error);
-        throw new Error(`Failed to process FMP4 manifest: ${error.message || 'Unknown error'}`);
-      }
+
+      return response;
     case "fargate":
       const fargateUrl = new URL(`http://${process.env.FargateALB}`);
       const fargatePayload = {
@@ -270,123 +241,10 @@ const createFmp4Manifest = async ({
 
       const fargateManifest = await fargateResponse.json();
 
-      const fargateNewImage = await fetch(fargateManifest.manifest);
-
-      await s3Client.send(
-        new PutObjectCommand({
-          Bucket: process.env.uiStorageBucket,
-          Key: `fragments/assets/${newTitle}`,
-          Body: await fargateNewImage.arrayBuffer(),
-          ContentType: fargateNewImage.headers.get("Content-Type"),
-        })
-      );
-
-      return JSON.stringify({ manifest: `fragments/assets/${newTitle}` });
+      return fargateManifest;
     default:
       throw new Error(`Invalid compute type: ${computeType}`);
   }
-};
-
-const convertMP4ToFMP4 = async ({
-  //computeType,
-  newTitle,
-  mp4FileS3,
-  mp4FileName,
-  mp4FileType,
-  mp4FileBase64,
-}: IConvertMP4ToFMP4) => {
-  //switch (computeType) {
-    // case "lambda":
-    //   const url = new URL(process.env.LambdaFnURL!);
-    //   const payload = {
-    //     new_title: newTitle,
-    //     mp4_file_s3: mp4FileS3,
-    //     mp4_file_name: mp4FileName,
-    //     mp4_file_type: mp4FileType,
-    //     mp4_file_base64: mp4FileBase64,
-    //   };
-
-    //   const request = new HttpRequest({
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json",
-    //       Host: url.hostname,
-    //     },
-    //     hostname: url.hostname,
-    //     path: "/convert_mp4",
-    //     body: JSON.stringify(payload),
-    //   });
-
-    //   const signedRequest = await new SignatureV4({
-    //     credentials: defaultProvider(),
-    //     region: process.env.AWS_DEFAULT_REGION,
-    //     service: "lambda",
-    //     sha256: Sha256,
-    //   }).sign(request);
-
-    //   const convertResponse = await fetch(
-    //     `${url.origin}/convert_mp4`,
-    //     signedRequest
-    //   );
-
-    //   if (!convertResponse.ok) throw new Error(convertResponse.statusText);
-
-    //   // Get the response from the Lambda function
-    //   const response = await convertResponse.json();
-      
-    //   // Log the response for debugging
-    //   console.log("Lambda response:", JSON.stringify(response, null, 2));
-      
-    //   // The Lambda function returns the MPD URL and other information
-    //   const { mpd_url, mpd_key, files } = response;
-      
-    //   // The frontend expects a JSON string, not an object
-    //   return JSON.stringify({ 
-    //     mpdUrl: mpd_url,
-    //     mpdKey: mpd_key,
-    //     files: files || []
-    //   });
-      
-    //case "fargate":
-      const fargateUrl = new URL(`http://${process.env.FargateALB}`);
-      const fargatePayload = {
-        new_title: newTitle,
-        mp4_file_s3: mp4FileS3,
-        mp4_file_name: mp4FileName,
-        mp4_file_type: mp4FileType,
-        mp4_file_base64: mp4FileBase64,
-      };
-
-      const fargateRequest = new HttpRequest({
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Host: fargateUrl.hostname,
-        },
-        hostname: fargateUrl.hostname,
-        path: "/convert_mp4",
-        body: JSON.stringify(fargatePayload),
-      });
-
-      const fargateResponse = await fetch(
-        `${fargateUrl.origin}/convert_mp4`,
-        fargateRequest
-      );
-
-      if (!fargateResponse.ok) throw new Error(fargateResponse.statusText);
-
-      const fargateResult = await fargateResponse.json();
-      
-      return JSON.stringify({ 
-        mpdUrl: fargateResult.mpd_url,
-        mpdKey: fargateResult.mpd_key,
-        files: fargateResult.files || []
-      });
-    /*
-    default:
-      throw new Error(`Invalid compute type: ${computeType}`);
-    */
-  //}
 };
 
 const lambdaHandler = async (event: {
