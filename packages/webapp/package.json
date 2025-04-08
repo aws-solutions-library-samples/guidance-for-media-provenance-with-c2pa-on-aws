@@ -35,7 +35,10 @@
     "video.js": "^7.17.0",
     "bootstrap": "^5.3.0",
     "react-bootstrap": "^2.0.0",
-    "react-icons": "^4.3.1"
+    "react-icons": "^4.3.1",
+    "@babel/helpers": "^7.26.10",
+    "@babel/runtime": "^7.26.10",
+    "webpack": "^5.94.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
