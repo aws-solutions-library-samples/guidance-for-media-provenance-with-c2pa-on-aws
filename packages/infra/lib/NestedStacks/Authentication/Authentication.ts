@@ -1,12 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 
+import * as identity from "aws-cdk-lib/aws-cognito-identitypool";
 import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as s3 from "aws-cdk-lib/aws-s3";
-
-import {
-  IdentityPool,
-  UserPoolAuthenticationProvider,
-} from "@aws-cdk/aws-cognito-identitypool-alpha";
 
 import { Construct } from "constructs";
 import { NagSuppressions } from "cdk-nag";
@@ -23,7 +19,7 @@ interface IAuthentication {
  */
 export class Authentication extends Construct {
   public readonly userPool: cognito.UserPool;
-  public readonly identityPool: IdentityPool;
+  public readonly identityPool: identity.IdentityPool;
   public readonly userPoolClient: cognito.UserPoolClient;
 
   constructor(scope: Construct, id: string, props: IAuthentication) {
@@ -64,11 +60,11 @@ export class Authentication extends Construct {
     /*************************** User Client ********************************/
     /************************************************************************/
 
-    this.identityPool = new IdentityPool(this, "Identity Pool", {
+    this.identityPool = new identity.IdentityPool(this, "Identity Pool", {
       identityPoolName: stack.stackName,
       authenticationProviders: {
         userPools: [
-          new UserPoolAuthenticationProvider({
+          new identity.UserPoolAuthenticationProvider({
             userPool: this.userPool,
             userPoolClient: this.userPoolClient,
           }),

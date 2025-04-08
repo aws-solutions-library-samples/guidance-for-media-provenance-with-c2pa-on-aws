@@ -10,8 +10,8 @@ import * as cognito from "aws-cdk-lib/aws-cognito";
 import * as s3Assets from "aws-cdk-lib/aws-s3-assets";
 import * as amplify from "@aws-cdk/aws-amplify-alpha";
 import * as actions from "aws-cdk-lib/aws-codepipeline-actions";
+import * as identity from "aws-cdk-lib/aws-cognito-identitypool";
 
-import { IdentityPool } from "@aws-cdk/aws-cognito-identitypool-alpha";
 import { NagSuppressions } from "cdk-nag";
 import { Construct } from "constructs";
 
@@ -24,7 +24,7 @@ interface AmplifyProps {
   graphqlApi: appsync.GraphqlApi;
   cpArtifactBucket: s3.Bucket;
   uiStorageBucket: s3.Bucket;
-  identityPool: IdentityPool;
+  identityPool: identity.IdentityPool;
   userPool: cognito.UserPool;
 }
 
