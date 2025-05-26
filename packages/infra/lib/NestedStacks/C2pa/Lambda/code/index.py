@@ -8,11 +8,11 @@ import tempfile
 import mimetypes
 
 from urllib import request
-from os.path import splitext
-from datetime import datetime
+from os.path import splitext, dirname, basename, join as path_join
 from urllib.parse import urlparse
+from datetime import datetime
 from utils import (
-    run_c2pa_command_for_fmp4,
+    run_c2pa_command_for_fmp4
 )
 
 from pydantic import BaseModel
@@ -154,12 +154,10 @@ class SignFmp4Event(BaseModel):
 @app.post("/sign_fmp4")
 def sign_fmp4(request: SignFmp4Event):
     with tempfile.TemporaryDirectory() as temp_dir:
-        init_file_path = os.path.join(temp_dir, "init.mp4")
-        logger.info(f"Downloading init file: {request.init_file}")
-        print("starting download")
+        init_filename = os.path.basename(urlparse(request.init_file).path)
+        init_file_path = os.path.join(temp_dir, init_filename)
+        logger.info(f"Downloading init file: {request.init_file}")        
 
-        # Instead of directly accessing S3, use HTTP URLs
-        # The URLs should be pre-signed URLs or publicly accessible
         try:
             with open(init_file_path, "wb") as f:
                 # Check if it's an HTTP URL
@@ -203,17 +201,8 @@ def sign_fmp4(request: SignFmp4Event):
         
         # Handle fragments pattern
         try:
-            fragments_config = urlparse(request.fragments_pattern)
-            
-            # Check if it's an HTTP URL pattern
-            if request.fragments_pattern.startswith("http"):
-                logger.error("HTTP URL patterns for fragments are not supported")
-                raise ServiceError(
-                    status_code=400, 
-                    detail="HTTP URL patterns for fragments are not supported. Use s3:// URLs with the output bucket."
-                )
-            # Check if it's an S3 URL pattern
-            elif request.fragments_pattern.startswith("s3://"):
+            fragments_config = urlparse(request.fragments_pattern)            
+            if request.fragments_pattern.startswith("s3://"):
                 bucket_name = fragments_config.netloc
                 prefix = os.path.dirname(fragments_config.path.lstrip("/"))
                 
@@ -228,7 +217,7 @@ def sign_fmp4(request: SignFmp4Event):
                     ):
                         if "Contents" in page:
                             for obj in page["Contents"]:
-                                if obj["Key"].endswith(".m4s"):  # Only process .m4s files
+                                if obj["Key"].endswith(".m4s") or obj["Key"].endswith(".mpd"):
                                     fragment_path = os.path.join(
                                         temp_dir, os.path.basename(obj["Key"])
                                     )
@@ -272,14 +261,7 @@ def sign_fmp4(request: SignFmp4Event):
         manifest_path = os.path.join(temp_dir, "manifest.json")
         
         try:
-            # Check if it's an HTTP URL
-            if request.manifest_file.startswith("http"):
-                logger.info(f"Downloading manifest from HTTP URL: {request.manifest_file}")
-                response = request.urlopen(request.manifest_file)
-                with open(manifest_path, "wb") as f:
-                    f.write(response.read())
-            # Check if it's an S3 URL
-            elif request.manifest_file.startswith("s3://"):
+            if request.manifest_file.startswith("s3://"):
                 manifest_config = urlparse(request.manifest_file)
                 manifest_bucket = manifest_config.netloc
                 manifest_key = manifest_config.path.lstrip("/")
@@ -326,14 +308,14 @@ def sign_fmp4(request: SignFmp4Event):
         )
 
         if not success:
+            logger.error(f"C2PA signing failed: {output}")
             raise ServiceError(
-                status_code=500, detail=f"C2PA signing failed: {output}"
+                status_code=500, 
+                detail=f"C2PA signing failed: {output}"
             )
 
         print(os.listdir(output_dir))
-
         output_folder = os.path.join(output_dir, temp_dir.split("/").pop())
-
         for root, _, files in os.walk(output_folder):
             for file in files:
                 s3.upload_file(
@@ -341,6 +323,24 @@ def sign_fmp4(request: SignFmp4Event):
                     output_bucket,
                     f"fragments/processed/{request.new_title}/{file}",
                 )
+
+        # Upload the DASH Manifest file
+        manifest_key = os.path.join(
+            "fragments/processed", request.new_title, "manifest.mpd"
+        )
+        
+        mpd_file_path = next(
+            (f for f in fragments if f.endswith(".mpd")),
+            None
+        )
+        if mpd_file_path:
+            logger.info(f"Uploading DASH Manifest file: {mpd_file_path}")
+            mpd_filename = os.path.basename(urlparse(mpd_file_path).path)
+            s3.upload_file(
+                os.path.join(temp_dir, mpd_file_path),
+                output_bucket,
+                f"fragments/processed/{request.new_title}/{mpd_filename}",
+            )
 
         # manifest = s3.generate_presigned_url(
         #     "get_object",
@@ -439,7 +439,6 @@ def read_file(readFileEvent: ReadFileEvent):
             status_code=500,
             detail=f"Error reading file: {str(e)}"
         )
-
 
 @logger.inject_lambda_context(
     correlation_id_path=correlation_paths.LAMBDA_FUNCTION_URL, log_event=True
