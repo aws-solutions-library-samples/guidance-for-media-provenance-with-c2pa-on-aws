@@ -90,6 +90,7 @@ VITE_IDENTITYPOOLID = xxxxxxxxx
 VITE_REGION = xxxxxxxxx
 VITE_USERPOOLCLIENTID = xxxxxxxxx
 VITE_USERPOOLID = xxxxxxxxx
+VITE_CLOUDFRONTURL = xxx
 ```
 
 Replace the X's with your actual resource values. This setup will allow you to test the webapp locally while connecting to your deployed AWS resources.

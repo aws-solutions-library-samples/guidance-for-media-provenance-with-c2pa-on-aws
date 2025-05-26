@@ -6,38 +6,46 @@ import "../c2pa/c2pa-player.css";
 import { Button, Container, Header } from "@cloudscape-design/components";
 import { c2pa_init } from "../c2pa/plugin-dash/c2pa-dash-plugin.js";
 import { C2PAPlayer } from "../c2pa/C2paPlayer/main.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export const FMP4Inspect = () => {
+  const [searchParams] = useSearchParams();
+  const assetId = searchParams.get("asset");
+
   const [, setPlayer] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<any>(null);
 
-  const url = "https://cc-assets.netlify.app/video/fmp4-samples/boat.mpd";
+  const basePath = import.meta.env.VITE_CLOUDFRONTURL || "";
+  const url = `${basePath}/${assetId}output.mpd`;
   const videoId = "videoPlayer";
   const autoPlay = false;
   const options = {};
 
   useEffect(() => {
-    // Initialize dash when component mounts
     initializeDash(url, options, autoPlay);
-
-    // Cleanup when component unmounts
     return () => {
-      // Optional: Add cleanup if needed
-      setPlayer(null);
+      if (playerRef.current) {
+        playerRef.current.dispose();
+        playerRef.current = null;
+      }
     };
   }, []);
 
-  const initializeDash = (
+  const initializeDash = useCallback((
     url: string,
     options?: Record<string, any>,
     autoPlay = false
   ) => {
     console.log("initializeDash", url, options, autoPlay);
+    if (!videoRef.current || playerRef.current) return;
+
     // @ts-ignore
     const player = dashjs.MediaPlayer().create();
     const playerOptions = {
       fluid: true,
+      autoplay: autoPlay,
       controlBar: {
         children: [
           "playToggle",
@@ -50,28 +58,24 @@ export const FMP4Inspect = () => {
       },
     };
 
-    /* Create videojs player and c2pa player */
-    /* Responsible for UI and playback control */
-    const video = document.querySelector(`#${videoId}`) as HTMLVideoElement;
     // @ts-expect-error
-    const videoJsPlayer = videojs(videoId, playerOptions, () => {
-      // @ts-expect-error
-      videojs.log("onPlayerReady");
-    });
+    const videoJsPlayer = videojs(videoRef.current, playerOptions);
+    playerRef.current = videoJsPlayer;
+    videoJsPlayer.log("onPlayerReady");
+    
 
-    const c2paJsPlayer = new C2PAPlayer(videoJsPlayer, video);
+    const c2paJsPlayer = new C2PAPlayer(videoJsPlayer, videoRef.current);
     c2paJsPlayer.initialize();
 
     c2pa_init(player, function (e) {
-      /* Update c2pa player with current c2pa status update */
       console.log("c2pa_init", e);
       c2paJsPlayer.playbackUpdate(e.c2pa_status);
     }).then(() => {
-      player.initialize(video, url, true);
+      player.initialize(videoRef.current, url, autoPlay);
     });
 
     setPlayer(player);
-  };
+  }, []);
 
   return (
     <Container

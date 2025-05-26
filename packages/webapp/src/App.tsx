@@ -111,7 +111,7 @@ const navItems: SideNavigationProps.Item[] = [
           />
         ),
       },
-      {
+      /*{
         text: "",
         type: "link",
         href: "",
@@ -121,7 +121,7 @@ const navItems: SideNavigationProps.Item[] = [
             title={"Dash Player Example"}
           />
         ),
-      },
+      },*/
     ],
   },
 ];
