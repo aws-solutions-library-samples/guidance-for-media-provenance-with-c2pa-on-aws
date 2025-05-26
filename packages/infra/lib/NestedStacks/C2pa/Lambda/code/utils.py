@@ -109,7 +109,17 @@ def run_c2pa_command_for_fmp4(init_file, fragments_glob, output_dir, manifest_fi
         error_message = (
             f"Command failed with return code {return_code}\nOutput:\n{output}"
         )
-        print(f"ERROR: {error_message}")
+        print(f"Error: {error_message}")
         return False, error_message
 
     return True, output
+
+
+def read_c2pa_command_for_fmp4(init_file, fragments_glob, output_dir, manifest_file):
+    """
+    Run c2patool command for validating fragmented MP4 files with manifest
+    """
+    raise NotImplementedError(
+        "read_c2pa_command_for_fmp4 is not implemented. This function should be implemented in the future."
+    )
+    return True, None

@@ -19,6 +19,7 @@ interface AppSyncProps {
   alb: elb.ApplicationLoadBalancer;
   userPool: cognito.UserPool;
   uiStorageBucket: s3.Bucket;
+  backendStorageBucket: s3.Bucket;
   fnUrl: lambda.FunctionUrl;
   vpc: ec2.Vpc;
 }
@@ -37,7 +38,7 @@ export class AppSync extends Construct {
   constructor(
     scope: Construct,
     id: string,
-    { userPool, fnUrl, uiStorageBucket, alb, vpc }: AppSyncProps
+    { userPool, fnUrl, uiStorageBucket, backendStorageBucket, alb, vpc }: AppSyncProps
   ) {
     super(scope, id);
 
@@ -126,6 +127,7 @@ export class AppSync extends Construct {
     );
     fnUrl.grantInvokeUrl(uiLambdaMiddleware);
     uiStorageBucket.grantReadWrite(uiLambdaMiddleware);
+    backendStorageBucket.grantReadWrite(uiLambdaMiddleware);
 
     NagSuppressions.addResourceSuppressions(
       uiLambdaMiddleware,

@@ -170,8 +170,9 @@ class SignFmp4Event(BaseModel):
 @app.post("/sign_fmp4")
 async def sign_fmp4(request: SignFmp4Event):
     with tempfile.TemporaryDirectory() as temp_dir:
-        init_file_path = os.path.join(temp_dir, "init.mp4")
-        logger.info(f"Downloading init file: {request.init_file}")
+        init_filename = os.path.basename(urlparse(request.init_file).path)
+        init_file_path = os.path.join(temp_dir, init_filename)
+        logger.info(f"Downloading init file: {request.init_file}")        
         print("starting download")
 
         with open(init_file_path, "wb") as f:
@@ -229,9 +230,7 @@ async def sign_fmp4(request: SignFmp4Event):
             )
 
         print(os.listdir(output_dir))
-
         output_folder = os.path.join(output_dir, temp_dir.split("/").pop())
-
         for root, _, files in os.walk(output_folder):
             for file in files:
                 s3.upload_file(
@@ -239,6 +238,20 @@ async def sign_fmp4(request: SignFmp4Event):
                     output_bucket,
                     f"fragments/processed/{request.new_title}/{file}",
                 )
+
+        mpd_file_path = next(
+            (f for f in fragments if f.endswith(".mpd")),
+            None
+        )
+        if mpd_file_path:
+            logger.info(f"Uploading DASH Manifest file: {mpd_file_path}")
+            mpd_filename = os.path.basename(urlparse(mpd_file_path).path)
+            s3.upload_file(
+                os.path.join(temp_dir, mpd_file_path),
+                output_bucket,
+                f"fragments/processed/{request.new_title}/{mpd_filename}",
+            )
+
 
         # manifest = s3.generate_presigned_url(
         #     "get_object",

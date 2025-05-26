@@ -9,6 +9,8 @@ import {
   S3Client,
   GetObjectCommand,
   PutObjectCommand,
+  ListObjectsV2Command, 
+  CopyObjectCommand 
 } from "@aws-sdk/client-s3";
 
 import middy from "@middy/core";
@@ -207,6 +209,25 @@ const createFmp4Manifest = async ({
 
       // Get the response from the Lambda function
       const response = await signfileResponse.json();
+      const savedLocation = response.saved_location;
+      const s3Key = savedLocation.split("s3://")[1];
+      const s3Bucket = s3Key.split("/")[0];
+      const s3Path = s3Key.split("/").slice(1).join("/");
+      
+      try {
+        const copyResult = await copyFolderBetweenBuckets(
+          s3Bucket,
+          process.env.uiStorageBucket!,
+          s3Path,
+          `fragments/completed/${newTitle}/`
+        );
+        console.log("Copy folder result:", copyResult); 
+        if (copyResult && copyResult.message) {
+            console.log("Copy folder message:", copyResult.message);
+        }
+      } catch (error) {
+        console.log("Error during copy folder operation:", error);
+      }
 
       // Log the response for debugging
       console.log("Lambda response:", JSON.stringify(response, null, 2));
@@ -264,3 +285,49 @@ const lambdaHandler = async (event: {
 export const handler = middy(lambdaHandler).use(
   injectLambdaContext(logger, { logEvent: true })
 );
+
+
+const copyFolderBetweenBuckets = async (
+  sourceBucket: string, 
+  destinationBucket: string, 
+  sourcePrefix: string,
+  destinationPrefix: string
+) => {  
+  try {
+    const listCommand = new ListObjectsV2Command({
+      Bucket: sourceBucket,
+      Prefix: sourcePrefix
+    });
+
+    const listedObjects = await s3Client.send(listCommand);
+
+    if (!listedObjects.Contents || listedObjects.Contents.length === 0) {
+      throw new Error(`object not found ${sourceBucket}/${sourcePrefix}`);
+    }
+
+    const copyPromises = listedObjects.Contents.map(async (object) => {
+      if (!object.Key) return;
+      const relativePath = object.Key.slice(sourcePrefix.length);
+      const destinationKey = `${destinationPrefix}${relativePath}`;
+
+      const copyCommand = new CopyObjectCommand({
+        CopySource: `${sourceBucket}/${object.Key}`,
+        Bucket: destinationBucket,
+        Key: destinationKey
+      });
+
+      return s3Client.send(copyCommand);
+    });
+
+    await Promise.all(copyPromises);
+    
+    return {
+      success: true,
+      message: `${listedObjects.Contents.length} files were copied from ${sourcePrefix} to ${destinationPrefix}`
+    };
+
+  } catch (error) {
+    console.log('Error Copying:', error);
+    throw error;
+  }
+};
