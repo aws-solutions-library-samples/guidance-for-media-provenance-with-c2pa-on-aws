@@ -9,13 +9,13 @@ import {
 } from "@cloudscape-design/components";
 
 import { useListAssets } from "../../../api/api";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export const FMP4Library = () => {
   const navigate = useNavigate();
 
   const { data, isLoading, refetch, isRefetching } =
-    useListAssets("fragments/assets/");
+    useListAssets("fragments/completed/");
 
   return (
     <ContentLayout>
@@ -44,10 +44,16 @@ export const FMP4Library = () => {
                 }
                 columnDefinitions={[
                   {
-                    id: "name",
-                    header: "Name",
-                    cell: (item) => item.split("/").reverse()[1],
-                  },
+            id: "name",
+            header: "Name",
+            cell: (item) => (
+              <Link
+                to={`/fmp4-manager/inspect-asset?asset=${item}`}
+              >
+                {item}
+              </Link>
+            ),
+          },
                 ]}
                 empty={
                   <Box margin={{ vertical: "xs" }}>
@@ -68,56 +74,7 @@ export const FMP4Library = () => {
                 variant="container"
               />
             ),
-          },
-          {
-            label: "Outputs",
-            id: "outputs",
-            content: (
-              <Table
-                header={
-                  <Header
-                    variant="h3"
-                    description={"Processed fragments to outputs"}
-                    actions={
-                      <Button
-                        key={"refresh"}
-                        iconName="refresh"
-                        loading={isRefetching}
-                        onClick={() => refetch()}
-                      />
-                    }
-                  >
-                    Outputs Library
-                  </Header>
-                }
-                columnDefinitions={[
-                  {
-                    id: "name",
-                    header: "Name",
-                    cell: () =>
-                      "Go to the C2PA Backend Bucket to see processed fragments",
-                  },
-                ]}
-                empty={
-                  <Box margin={{ vertical: "xs" }}>
-                    <SpaceBetween size="m">
-                      <Button
-                        onClick={() =>
-                          navigate("/fmp4-manager/upload-asset-fmp4")
-                        }
-                      >
-                        Upload fMP4
-                      </Button>
-                    </SpaceBetween>
-                  </Box>
-                }
-                loading={isLoading}
-                items={["TBC"]}
-                loadingText="Loading fragments"
-                variant="container"
-              />
-            ),
-          },
+          }          
         ]}
       />
     </ContentLayout>

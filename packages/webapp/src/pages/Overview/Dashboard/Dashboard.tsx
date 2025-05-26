@@ -132,6 +132,12 @@ export const Dashboard = () => {
                 {import.meta.env.VITE_FRONTENDSTORAGEBUCKET}
               </StatusIndicator>
             </div>
+            <div>
+              <Box variant="awsui-key-label">Backend Storage Bucket</Box>
+              <StatusIndicator type={isError ? "error" : "success"}>
+                {import.meta.env.VITE_BACKENDSTORAGEBUCKET}
+              </StatusIndicator>
+            </div>
           </ColumnLayout>
         </Container>
 
