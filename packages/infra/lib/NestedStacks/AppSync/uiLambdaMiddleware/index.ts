@@ -261,6 +261,26 @@ const createFmp4Manifest = async ({
       if (!fargateResponse.ok) throw new Error(fargateResponse.statusText);
 
       const fargateManifest = await fargateResponse.json();
+      const fargateSavedLocation = fargateManifest.saved_location;
+      const fargateS3Key = fargateSavedLocation.split("s3://")[1];
+      const fargateS3Bucket = fargateS3Key.split("/")[0];
+      const fargateS3Path = fargateS3Key.split("/").slice(1).join("/");
+      
+      try {
+        const copyResult = await copyFolderBetweenBuckets(
+          fargateS3Bucket,
+          process.env.uiStorageBucket!,
+          fargateS3Path,
+          `fragments/completed/${newTitle}/`
+        );
+        console.log("Copy folder result:", copyResult); 
+        if (copyResult && copyResult.message) {
+            console.log("Copy folder message:", copyResult.message);
+        }
+      } catch (error) {
+        console.log("Error during copy folder operation:", error);
+      }
+
 
       return fargateManifest;
     default:
