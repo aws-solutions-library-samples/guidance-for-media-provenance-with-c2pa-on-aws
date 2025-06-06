@@ -342,13 +342,6 @@ def sign_fmp4(request: SignFmp4Event):
                 f"fragments/processed/{request.new_title}/{mpd_filename}",
             )
 
-        # manifest = s3.generate_presigned_url(
-        #     "get_object",
-        #     Params={
-        #         "Bucket": output_bucket,
-        #         "Key": output_key,
-        #     },
-        # )
 
         return {"saved_location": f"s3://{output_bucket}/fragments/processed/{request.new_title}/"}
 
