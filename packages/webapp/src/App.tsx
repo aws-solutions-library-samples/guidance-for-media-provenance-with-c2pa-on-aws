@@ -111,17 +111,6 @@ const navItems: SideNavigationProps.Item[] = [
           />
         ),
       },
-      /*{
-        text: "",
-        type: "link",
-        href: "",
-        info: (
-          <NavigationLink
-            path={"/fmp4-manager/inspect-asset"}
-            title={"Dash Player Example"}
-          />
-        ),
-      },*/
     ],
   },
 ];
