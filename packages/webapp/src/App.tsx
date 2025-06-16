@@ -58,7 +58,6 @@ const navItems: SideNavigationProps.Item[] = [
       },
     ],
   },
-
   {
     type: "section",
     text: "Simulations",
