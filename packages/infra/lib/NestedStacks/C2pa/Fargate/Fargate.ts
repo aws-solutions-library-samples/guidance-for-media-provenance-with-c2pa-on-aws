@@ -14,6 +14,7 @@ import { Construct } from "constructs";
 import { NagSuppressions } from "cdk-nag";
 
 export interface FargateProps {
+  uiStorageBucket: s3.Bucket;
   serverAccessLogsBucket: s3.Bucket;
   backendStorageBucket: s3.Bucket;
   certificate: secretsmanager.Secret;
@@ -28,6 +29,7 @@ export class Fargate extends Construct {
     scope: Construct,
     id: string,
     {
+      uiStorageBucket,
       serverAccessLogsBucket,
       backendStorageBucket,
       certificate,
@@ -81,6 +83,7 @@ export class Fargate extends Construct {
         ],
       })
     );
+    uiStorageBucket.grantRead(fastApi.taskDefinition.taskRole);
     fastApi.taskDefinition.applyRemovalPolicy(cdk.RemovalPolicy.DESTROY);
     this.alb = fastApi.loadBalancer;
     this.alb.logAccessLogs(serverAccessLogsBucket);

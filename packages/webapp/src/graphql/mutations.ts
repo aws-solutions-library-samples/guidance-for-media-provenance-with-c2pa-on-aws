@@ -15,3 +15,10 @@ export const createManifest = /* GraphQL */ `mutation CreateManifest($input: Cre
   APITypes.CreateManifestMutationVariables,
   APITypes.CreateManifestMutation
 >;
+export const createFMP4Manifest = /* GraphQL */ `mutation CreateFMP4Manifest($input: CreateFMP4Manifest!) {
+  createFMP4Manifest(input: $input)
+}
+` as GeneratedMutation<
+  APITypes.CreateFMP4ManifestMutationVariables,
+  APITypes.CreateFMP4ManifestMutation
+>;

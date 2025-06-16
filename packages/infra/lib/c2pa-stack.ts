@@ -57,11 +57,13 @@ export class C2paStack extends cdk.Stack {
 
     const { fnUrl } = new Lambda(this, "C2PA Lambda", {
       backendStorageBucket: storageStack.backendStorageBucket,
+      uiStorageBucket: storageStack.uiStorageBucket,
       vpc: networkStack.vpc,
       certificate,
       private_key,
     });
     const { alb } = new Fargate(this, "C2PA Fargate", {
+      uiStorageBucket: storageStack.uiStorageBucket,
       serverAccessLogsBucket: storageStack.serverAccessLogsBucket,
       backendStorageBucket: storageStack.backendStorageBucket,
       vpc: networkStack.vpc,
@@ -75,6 +77,7 @@ export class C2paStack extends cdk.Stack {
 
     const apiStack = new AppSync(this, "AppSync", {
       uiStorageBucket: storageStack.uiStorageBucket,
+      backendStorageBucket: storageStack.backendStorageBucket,
       userPool: authStack.userPool,
       vpc: networkStack.vpc,
       fnUrl,
@@ -116,6 +119,14 @@ export class C2paStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "VITE_FRONTENDSTORAGEBUCKET", {
       value: storageStack.uiStorageBucket.bucketName,
+    });
+    new cdk.CfnOutput(this, "VITE_BACKENDSTORAGEBUCKET", {
+      value: storageStack.backendStorageBucket.bucketName,
+    });
+
+    new cdk.CfnOutput(this, 'VITE_CLOUDFRONT_URL', {
+      value: storageStack.distribution.distributionDomainName,
+      description: 'CloudFront domain name for video streaming'
     });
   }
 }

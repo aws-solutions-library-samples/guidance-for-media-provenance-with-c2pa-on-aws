@@ -73,7 +73,7 @@ export const Overview = ({
                 iconName={"external"}
                 onClick={async () => {
                   const { url } = await mutateAsync({
-                    path: `assets/${searchParams.get("asset")}`,
+                    path: `complete/assets/${searchParams.get("asset")}`,
                   });
                   if (url) window.open(generateVerifyUrl(url.href));
                 }}
@@ -90,7 +90,7 @@ export const Overview = ({
           <StorageImage
             height={"30vh"}
             alt={searchParams.get("asset") ?? ""}
-            path={`assets/${searchParams.get("asset")}`}
+            path={`complete/assets/${searchParams.get("asset")}`}
           />
         </SpaceBetween>
       </Container>

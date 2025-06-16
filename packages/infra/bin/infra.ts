@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
+
 import { C2paStack } from "../lib/c2pa-stack";
 import { AwsSolutionsChecks } from "cdk-nag";
+
+import "source-map-support/register";
 
 const app = new cdk.App();
 new C2paStack(app, "C2paStack", {
