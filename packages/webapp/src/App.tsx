@@ -78,6 +78,40 @@ const navItems: SideNavigationProps.Item[] = [
       },
     ],
   },
+  {
+    type: "section",
+    text: "Fragmented MP4",
+    items: [
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: <NavigationLink path={"/fmp4-manager"} title={"Library"} />,
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/fmp4-manager/upload-asset-fmp4"}
+            title={"Upload fMP4 Asset"}
+          />
+        ),
+      },
+      {
+        text: "",
+        type: "link",
+        href: "",
+        info: (
+          <NavigationLink
+            path={"/fmp4-manager/sign-fmp4"}
+            title={"Sign fMP4"}
+          />
+        ),
+      },
+    ],
+  },
 ];
 
 export const App = ({ signOut, user }: IAuthenticator) => {

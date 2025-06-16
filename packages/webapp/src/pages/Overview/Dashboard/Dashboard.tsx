@@ -22,7 +22,8 @@ import prettyBytes from "pretty-bytes";
 export const Dashboard = () => {
   const navigate = useNavigate();
 
-  const { data, isLoading, isRefetching, isError, refetch } = useListAssets();
+  const { data, isLoading, isRefetching, isError, refetch } =
+    useListAssets("complete/assets/");
 
   return (
     <ContentLayout
@@ -129,6 +130,12 @@ export const Dashboard = () => {
               <Box variant="awsui-key-label">Frontend Storage Bucket</Box>
               <StatusIndicator type={isError ? "error" : "success"}>
                 {import.meta.env.VITE_FRONTENDSTORAGEBUCKET}
+              </StatusIndicator>
+            </div>
+            <div>
+              <Box variant="awsui-key-label">Backend Storage Bucket</Box>
+              <StatusIndicator type={isError ? "error" : "success"}>
+                {import.meta.env.VITE_BACKENDSTORAGEBUCKET}
               </StatusIndicator>
             </div>
           </ColumnLayout>

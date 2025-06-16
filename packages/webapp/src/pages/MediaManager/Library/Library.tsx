@@ -20,7 +20,8 @@ export const Library = () => {
     ListPaginateWithPathOutput["items"]
   >([]);
 
-  const { data, isLoading, refetch, isRefetching } = useListAssets();
+  const { data, isLoading, refetch, isRefetching } =
+    useListAssets("complete/assets/");
   const { mutate, isPending } = useRemoveFiles(() => {
     setSelectedItems([]);
     refetch();
@@ -35,18 +36,6 @@ export const Library = () => {
             description={"Library of all assets uploaded"}
             actions={
               <SpaceBetween size="s" direction="horizontal">
-                <Button
-                  disabled={selectedItems.length !== 1}
-                  onClick={() =>
-                    navigate(
-                      `/media-manager/edit-asset?asset=${selectedItems[0].path
-                        .split("/")
-                        .pop()}`
-                    )
-                  }
-                >
-                  Edit
-                </Button>
                 <Button
                   disabled={!selectedItems.length}
                   loading={isPending}
@@ -97,7 +86,7 @@ export const Library = () => {
           {
             id: "lastModified",
             header: "Last Modified",
-            cell: (item) => (item.lastModified ?? "N/A").toString(),
+            cell: (item) => new Date(item.lastModified ?? "").toLocaleString(),
           },
         ]}
         empty={

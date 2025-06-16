@@ -1,15 +1,16 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { generateClient } from "aws-amplify/api";
 import {
-  copy,
   getProperties,
-  getUrl,
-  list,
-  remove,
   uploadData,
+  getUrl,
+  remove,
+  copy,
+  list,
 } from "aws-amplify/storage";
-import { createManifest } from "../graphql/mutations";
+
+import { createFMP4Manifest, createManifest } from "../graphql/mutations";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { SelectProps } from "@cloudscape-design/components";
+import { generateClient } from "aws-amplify/api";
 
 const client = generateClient();
 
@@ -30,12 +31,17 @@ export const useRemoveFiles = (refetch: () => void) => {
   });
 };
 
-export const useListAssets = () => {
+export const useListAssets = (path: string) => {
   return useQuery({
-    queryKey: ["useListAssets"],
+    queryKey: [`useListAssets${path}`],
     queryFn: async () => {
       return await list({
-        path: "assets/",
+        path,
+        options: {
+          subpathStrategy: {
+            strategy: "exclude",
+          },
+        },
       });
     },
   });
@@ -153,6 +159,40 @@ export const useCreateNewManifest = () => {
       });
 
       return JSON.parse(data.createManifest);
+    },
+  });
+};
+
+export interface IUseCreateNewFMP4Manifest {
+  newTitle: string;
+  computeType: string;
+  initFile: string;
+  manifestFile: string;
+  fragmentsPattern: string;
+}
+export const useCreateNewFMP4Manifest = () => {
+  return useMutation({
+    mutationFn: async ({
+      newTitle,
+      computeType,
+      initFile,
+      manifestFile,
+      fragmentsPattern,
+    }: IUseCreateNewFMP4Manifest) => {
+      const { data } = await client.graphql({
+        query: createFMP4Manifest,
+        variables: {
+          input: {
+            newTitle,
+            computeType,
+            initFile,
+            manifestFile,
+            fragmentsPattern,
+          },
+        },
+      });
+
+      return JSON.parse(data.createFMP4Manifest);
     },
   });
 };

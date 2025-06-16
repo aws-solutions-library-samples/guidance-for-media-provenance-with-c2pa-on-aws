@@ -44,3 +44,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+!packages/webapp/src/pages/Fmp4Manager/c2pa/**
+*.tsbuildinfo
