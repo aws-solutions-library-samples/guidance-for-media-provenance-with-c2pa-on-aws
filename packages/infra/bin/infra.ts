@@ -8,8 +8,6 @@ import "source-map-support/register";
 
 const app = new cdk.App();
 
-// Log the detected architecture
-console.log(`Detected architecture: ${process.arch}`);
 
 new C2paStack(app, "C2paStack", {
   env: {
