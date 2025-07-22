@@ -58,6 +58,8 @@ Deploy the guidance using:
 pnpm cdk deploy
 ```
 
+The deployment will automatically detect your system's architecture (AMD64 or ARM64) and use the appropriate architecture for Fargate containers.
+
 The cdk outputs cloudformation templates to the `cdk.out` folder. By running the following command you will be able to access these templates at `C2PaStack.template.json`
 
 The project will synthesize and then deploy

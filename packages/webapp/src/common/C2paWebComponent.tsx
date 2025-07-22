@@ -60,12 +60,16 @@ export const C2paWebComponents = ({
       <img width={"100%"} src={imageUrl} />
       {manifestStore ? (
         <div>
+          {/* @ts-ignore */}
           <cai-popover
             style={{ position: "absolute", top: "10px", right: "10px" }}
             interactive
           >
+            {/* @ts-ignore */}
             <cai-indicator slot="trigger" />
+            {/* @ts-ignore */}
             <cai-manifest-summary ref={summaryRef} slot="content" />
+          {/* @ts-ignore */}
           </cai-popover>
         </div>
       ) : null}
