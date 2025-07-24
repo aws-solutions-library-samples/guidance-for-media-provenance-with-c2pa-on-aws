@@ -57,8 +57,16 @@ export class Fargate extends Construct {
         // https://docs.aws.amazon.com/AmazonECS/latest/developerguide/fargate-tasks-services.html#fargate-tasks-size
         cpu: 2048,
         memoryLimitMiB: 8192,
+        runtimePlatform: {
+          cpuArchitecture: process.arch === 'arm64' ? ecs.CpuArchitecture.ARM64 : ecs.CpuArchitecture.X86_64,
+          operatingSystemFamily: ecs.OperatingSystemFamily.LINUX,
+        },
         taskImageOptions: {
-          image: ecs.ContainerImage.fromAsset(path.join(__dirname, "code")),
+          image: ecs.ContainerImage.fromAsset(path.join(__dirname, "code"), {
+            buildArgs: {
+              ARCHITECTURE: process.arch === 'arm64' ? 'arm64' : 'amd64'
+            }
+          }),
           environment: {
             output_bucket: backendStorageBucket.bucketName,
             certificate: certificate.secretName,

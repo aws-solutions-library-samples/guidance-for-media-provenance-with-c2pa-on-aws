@@ -13,9 +13,8 @@ import { Link, useNavigate } from "react-router-dom";
 
 export const FMP4Library = () => {
   const navigate = useNavigate();
-
   const { data, isLoading, refetch, isRefetching } =
-    useListAssets("fragments/completed/");
+    useListAssets("fragments/assets/");
 
   return (
     <ContentLayout>

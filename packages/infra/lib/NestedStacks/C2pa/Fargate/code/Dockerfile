@@ -1,4 +1,5 @@
-FROM --platform=linux/amd64 rust
+ARG ARCHITECTURE=amd64
+FROM --platform=linux/${ARCHITECTURE} rust
 
 # Copy function code
 COPY . .
