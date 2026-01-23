@@ -26,7 +26,7 @@
     "dagre": "^0.8.5",
     "framer-motion": "^12.18.1",
     "jotai": "^2.12.5",
-    "lodash": "^4.17.21",
+    "lodash": "^4.17.23",
     "pretty-bytes": "^7.0.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
